@@ -12,9 +12,13 @@ export function getContract() {
   return new ethers.Contract(CONTRACT_ADDRESS, TestContractJSON.abi, wallet);
 }
 
-export async function pingTest() {
+export async function ping() {
     console.log("try to call pingTest!");
     const contract = getContract();
     await contract.pingTest();
     console.log("pingTest erfolgreich!");
+}
+
+export async function whitelistAddress(address){
+  console.log("address:", address);
 }
