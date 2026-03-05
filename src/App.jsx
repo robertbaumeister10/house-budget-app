@@ -40,4 +40,7 @@ export default App;
 
 /*Tabs
 Contractinfo|Whitelist|Housemembers|Payment|Debts
+Responses readeble
+Response in Console/ Code
+Centralized
 */
