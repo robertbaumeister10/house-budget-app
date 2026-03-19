@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Dach -->
+  <polygon points="16,3 30,16 2,16" fill="#3B82F6"/>
+  <!-- Haus-Koerper -->
+  <rect x="6" y="16" width="20" height="13" rx="1" fill="#2563EB"/>
+  <!-- Tuer -->
+  <rect x="13" y="21" width="6" height="8" rx="1" fill="#BFDBFE"/>
+  <!-- Euro-Zeichen im Dach (weiss) -->
+  <text x="16" y="14" text-anchor="middle" font-size="7" font-family="Arial" font-weight="bold" fill="white">€</text>
+</svg>
