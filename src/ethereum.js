@@ -22,3 +22,23 @@ export async function ping() {
 export async function whitelistAddress(address){
   console.log("address:", address);
 }
+
+function assertContractMethod(contract, methodName) {
+  if (typeof contract[methodName] !== "function") {
+    throw new Error(`Contract-Methode ${methodName} ist im aktuellen ABI nicht vorhanden.`);
+  }
+}
+
+export async function addAddresses(address) {
+  console.log("try to call addAddresses", address);
+  const contract = getContract();
+  assertContractMethod(contract, "addAddresses");
+  return contract.addAddresses(address);
+}
+
+export async function deleteAddresses(address) {
+  console.log("try to call deleteAddresses", address);
+  const contract = getContract();
+  assertContractMethod(contract, "deleteAddresses");
+  return contract.deleteAddresses(address);
+}

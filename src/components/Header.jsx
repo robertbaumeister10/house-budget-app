@@ -28,6 +28,19 @@ function Header({ activePage, onNavigate }) {
 
       <HStack flex="1" justify="center" gap={1}>
         <Button
+          bg={activePage === "balance" ? "#2563EB" : "transparent"}
+          color={activePage === "balance" ? "white" : "#1E3A5F"}
+          fontWeight={activePage === "balance" ? "600" : "400"}
+          border="none"
+          _hover={{ bg: activePage === "balance" ? "#1D4ED8" : "#BFDBFE" }}
+          _focus={{ outline: "none", boxShadow: "none" }}
+          _focusVisible={{ outline: "none", boxShadow: "none" }}
+          size="sm"
+          onClick={() => onNavigate("balance")}
+        >
+          Finance Overview
+        </Button>
+        <Button
           bg={activePage === "payment" ? "#2563EB" : "transparent"}
           color={activePage === "payment" ? "white" : "#1E3A5F"}
           fontWeight={activePage === "payment" ? "600" : "400"}
@@ -39,6 +52,19 @@ function Header({ activePage, onNavigate }) {
           onClick={() => onNavigate("payment")}
         >
           Payment
+        </Button>
+        <Button
+          bg={activePage === "housemember" ? "#2563EB" : "transparent"}
+          color={activePage === "housemember" ? "white" : "#1E3A5F"}
+          fontWeight={activePage === "housemember" ? "600" : "400"}
+          border="none"
+          _hover={{ bg: activePage === "housemember" ? "#1D4ED8" : "#BFDBFE" }}
+          _focus={{ outline: "none", boxShadow: "none" }}
+          _focusVisible={{ outline: "none", boxShadow: "none" }}
+          size="sm"
+          onClick={() => onNavigate("housemember")}
+        >
+          Members
         </Button>
         <Button
           bg={activePage === "whitelist" ? "#2563EB" : "transparent"}
