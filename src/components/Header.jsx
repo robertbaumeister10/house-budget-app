@@ -1,7 +1,36 @@
 import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import { LuHouse, LuLogIn } from "react-icons/lu";
+import { ping } from "../../ethereum/ethereum";
 
 function Header({ activePage, onNavigate }) {
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkConnection = async () => {
+      try {
+        await ping();
+        if (isMounted) {
+          setIsConnected(true);
+        }
+      } catch {
+        if (isMounted) {
+          setIsConnected(false);
+        }
+      }
+    };
+
+    checkConnection();
+    const intervalId = setInterval(checkConnection, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
+
   return (
     <Flex
       px={6}
@@ -82,6 +111,17 @@ function Header({ activePage, onNavigate }) {
       </HStack>
 
       <Flex flex="1" justify="flex-end">
+        <HStack gap={3} mr={3}>
+          <Box
+            w="8px"
+            h="8px"
+            borderRadius="full"
+            bg={isConnected ? "green.400" : "red.400"}
+          />
+          <Text fontSize="sm" color={isConnected ? "green.700" : "red.700"} fontWeight="600">
+            {isConnected ? "Connected" : "Disconnected"}
+          </Text>
+        </HStack>
         <Button
           bg="white"
           color="#1E40AF"

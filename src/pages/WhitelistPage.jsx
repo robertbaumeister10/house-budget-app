@@ -6,7 +6,7 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { addAddresses, deleteAddresses } from "../ethereum";
+import { addWhitelistAddresses, deleteWhitelistAddresses } from "../../ethereum/ethereumWhitelist";
 import PageIntro from "../components/PageIntro";
 import { useState } from "react";
 import { LuPlus, LuTrash2 } from "react-icons/lu";
@@ -16,37 +16,31 @@ function WhitelistPage() {
   const [addressToDelete, setAddressToDelete] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
 
-  const handleAddAddress = async () => {
-    const trimmedAddress = addressToAdd.trim();
-
-    if (!trimmedAddress) {
-      setStatusMessage("Bitte eine Wallet-Adresse fuer addAddresses eingeben.");
+  const addWhitelistAddress = async (address) => {
+    if (!address) {
+      setStatusMessage("Bitte eine Walletadresse zum hinzufügen eingeben.");
       return;
     }
+    try{
+      console.log("Addresses added!");
+      await addWhitelistAddresses(address);
+    }
 
-    try {
-      await addAddresses(trimmedAddress);
-      setAddressToAdd("");
-      setStatusMessage(`addAddresses vorbereitet fuer ${trimmedAddress}.`);
-    } catch (error) {
-      setStatusMessage(error.message || "addAddresses konnte nicht ausgefuehrt werden.");
+    catch(error){
+      setStatusMessage(error.message || "Hinzufügen konnte nicht ausgefuehrt werden.");
     }
   };
 
-  const handleDeleteAddress = async () => {
-    const trimmedAddress = addressToDelete.trim();
-
-    if (!trimmedAddress) {
-      setStatusMessage("Bitte eine Wallet-Adresse fuer deleteAddresses eingeben.");
+  const handleDeleteAddress = async (address) => {
+    if (!address) {
+      setStatusMessage("Bitte eine Walletadresse zum Löschen eingeben.");
       return;
     }
-
     try {
-      await deleteAddresses(trimmedAddress);
-      setAddressToDelete("");
-      setStatusMessage(`deleteAddresses vorbereitet fuer ${trimmedAddress}.`);
+      console.log("Address deleted!");
+      await deleteWhitelistAddresses(address);
     } catch (error) {
-      setStatusMessage(error.message || "deleteAddresses konnte nicht ausgefuehrt werden.");
+      setStatusMessage(error.message || "Löschen konnte nicht ausgefuehrt werden.");
     }
   };
 
@@ -104,7 +98,7 @@ function WhitelistPage() {
                 px={5}
                 width="140px"
                 _hover={{ bg: "#1D4ED8" }}
-                onClick={handleAddAddress}
+                onClick={() => addWhitelistAddress(addressToAdd)}
                 flexShrink={0}
               >
                 <LuPlus />
@@ -154,7 +148,7 @@ function WhitelistPage() {
                 px={5}
                 width="140px"
                 _hover={{ bg: "#991B1B" }}
-                onClick={handleDeleteAddress}
+                onClick={() => handleDeleteAddress(addressToDelete)}
                 flexShrink={0}
               >
                 <LuTrash2 />

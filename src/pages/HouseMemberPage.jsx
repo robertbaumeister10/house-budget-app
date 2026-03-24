@@ -11,54 +11,67 @@ import {
 import PageIntro from "../components/PageIntro";
 import { useState } from "react";
 import { LuPlus, LuTrash2, LuUserRound, LuWallet, LuTrendingUp, LuTrendingDown, LuPersonStanding } from "react-icons/lu";
+import { addHouseMember, deleteHouseMember } from "../../ethereum/ethereumMembers";
 
-const initialMembers = [
-  { id: 1, name: "Anna", address: "0xABc...1234", balance: "1.5 ETH", schulden: "0.2 ETH" },
-  { id: 2, name: "Max", address: "0xDef...5678", balance: "0.8 ETH", schulden: "0.0 ETH" },
-  { id: 3, name: "Lena", address: "0x123...9abc", balance: "2.1 ETH", schulden: "0.5 ETH" },
-  { id: 4, name: "Tom", address: "0x456...def0", balance: "0.3 ETH", schulden: "0.1 ETH" },
-];
 
 function HouseMemberPage() {
-  const [members, setMembers] = useState(initialMembers);
   const [newName, setNewName] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newBalance, setNewBalance] = useState("");
   const [newSchulden, setNewSchulden] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [members] = useState([
+    {
+      id: 1,
+      name: "Anna",
+      address: "0x8ba1f109551bd432803012645ac136ddd64dba72",
+      balance: "1.5 ETH",
+      schulden: "0.2 ETH",
+    },
+    {
+      id: 2,
+      name: "Max",
+      address: "0xa0ee7a142d267c1f36714e4a8f75612f20a79720",
+      balance: "0.8 ETH",
+      schulden: "0.0 ETH",
+    },
+    {
+      id: 3,
+      name: "Lea",
+      address: "0x742d35cc6634c0532925a3b844bc454e4438f44e",
+      balance: "2.1 ETH",
+      schulden: "0.6 ETH",
+    },
+  ]);
 
-  const addMember = () => {
-    const trimmedName = newName.trim();
-    const trimmedAddress = newAddress.trim();
-
-    if (!trimmedName || !trimmedAddress) {
-      setStatusMessage("Bitte mindestens Name und Adresse eingeben.");
+  const addMember = async (memberName, memberAddress, memberBalance, memberDebts) => {
+    if (!memberName|| !memberAddress) {
+        setStatusMessage("Bitte mindestens Name und Adresse eingeben.");
       return;
     }
+    try{
+          console.log("Member added!");
+          await addHouseMember(memberName, memberAddress, memberBalance, memberDebts);
+        }
+    
+        catch(error){
+          setStatusMessage(error.message || "Hinzufügen konnte nicht ausgeführt werden.");
+        }
 
-    const alreadyExists = members.some(
-      (member) => member.name.toLowerCase() === trimmedName.toLowerCase()
-    );
-
-    if (alreadyExists) {
-      setStatusMessage("Dieses Housemember existiert bereits.");
-      return;
-    }
-
-    setMembers((current) => [
-      ...current,
-      { id: Date.now(), name: trimmedName, address: trimmedAddress, balance: newBalance || "0", schulden: newSchulden || "0" },
-    ]);
-    setNewName("");
-    setNewAddress("");
-    setNewBalance("");
-    setNewSchulden("");
-    setStatusMessage(`Housemember ${trimmedName} wurde hinzugefügt.`);
   };
 
-  const removeMember = (memberToRemove) => {
-    setMembers((current) => current.filter((m) => m.id !== memberToRemove.id));
-    setStatusMessage(`Housemember ${memberToRemove.name} wurde entfernt.`);
+  const removeMember = async (memberAddress) => {
+      if (!memberAddress) {
+        setStatusMessage("Bitte eine Adresse eingeben.");
+      return;
+    }
+    try{
+          console.log("Member deleted!");
+          await deleteHouseMember(memberAddress);
+        } 
+        catch(error){
+          setStatusMessage(error.message || "Löschen konnte nicht ausgeführt werden.");
+        }
   };
 
   return (
