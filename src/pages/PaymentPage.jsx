@@ -7,10 +7,19 @@ import {
   Stack,
   Tabs,
   Text,
+  Checkbox,
 } from "@chakra-ui/react";
 import PageIntro from "../components/PageIntro";
 import { LuArrowRight, LuWallet } from "react-icons/lu";
 import { useState } from "react";
+import { ethers } from "ethers";
+import {
+  approveEURCTransfer,
+  sendEURCtoContract,
+  sendETHtoContract,
+  payEURCtoAddress,
+  payETHtoAddress,
+} from "../../ethereum/ethereumPayment";
 
 function PaymentPage() {
   const [paymentAddress, setPaymentAddress] = useState("");
@@ -18,29 +27,114 @@ function PaymentPage() {
   const [depositAmount, setDepositAmount] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [currency, setCurrency] = useState("ETH");
+  const [isApproved, setIsApproved] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
 
-  const handlePayment = () => {
-    if (!paymentAddress.trim() || !paymentAmount.trim()) {
-      setStatusMessage("Bitte Adresse und Betrag fuer die Zahlung eingeben.");
-      return;
-    }
-
-    setStatusMessage(
-      `Zahlung vorbereitet: ${paymentAmount} an ${paymentAddress}. Contract-Call kann hier angeschlossen werden.`
-    );
-    console.log("send payment", { paymentAddress, paymentAmount });
+  const callApproveEURCTransfer = async (address) => {
+      try{
+        await approveEURCTransfer(address);
+        setStatusMessage("Approve EURC Transfer.");
+      }
+  
+      catch(error){
+        setStatusMessage(error.message || "EURC Transfer not approved.");
+      }
   };
 
-  const handleDeposit = () => {
-    if (!depositAmount.trim()) {
-      setStatusMessage("Bitte einen Betrag fuer die Einzahlung eingeben.");
+  const callSendEURCtoContract = async (address) => {
+      try{
+        await sendEURCtoContract(address);
+        setStatusMessage("Send EURC {amount} to contract.");
+      }
+  
+      catch(error){
+        setStatusMessage(error.message || "EURC not send to contract.");
+      }
+  };
+
+  const callSendETHtoContract = async (address) => {
+      try{
+        await sendETHtoContract(address);
+        setStatusMessage("Send EURC {amount} to contract.");
+      }
+  
+      catch(error){
+        setStatusMessage(error.message || "EURC not send to contract.");
+      }
+  };
+
+  const callPayEURCtoAddress = async (address, amount) => {
+      try{
+        await payEURCtoAddress(address, amount);
+        setStatusMessage("Send EURC to address.");
+      }
+  
+      catch(error){
+        setStatusMessage(error.message || "EURC could not be send to address.");
+      }
+  };
+
+  const callPayETHtoAddress = async (address, amount) => {
+      try{
+        await payETHtoAddress(address, amount);
+        setStatusMessage("Send ETH to address.");
+      }
+  
+      catch(error){
+        setStatusMessage(error.message || "ETH could not be send to address.");
+      }
+  };
+
+  const handlePayment = async () => {
+    if (!paymentAddress || !paymentAmount || Number(paymentAmount) <= 0) {
+      setStatusMessage("Bitte Empfängeradresse und Betrag eingeben.");
       return;
     }
 
-    setStatusMessage(
-      `Einzahlung vorbereitet: ${depositAmount} in den House Pool. Contract-Call kann hier angeschlossen werden.`
-    );
-    console.log("deposit into house pool", { depositAmount });
+    const amount = currency === "ETH"
+      ? ethers.parseEther(paymentAmount.toString())
+      : ethers.parseUnits(paymentAmount.toString(), 18);
+
+    try {
+      if (currency === "EURC") {
+        await callApproveEURCTransfer(amount);
+        await callPayEURCtoAddress(paymentAddress, amount);
+      } else {
+        await callPayETHtoAddress(paymentAddress, amount);
+      }
+      setStatusMessage(`Zahlung erfolgreich (${paymentAmount} ${currency}).`);
+    } catch (error) {
+      setStatusMessage(error.message || "Zahlung fehlgeschlagen.");
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!depositAmount || Number(depositAmount) <= 0) {
+      setStatusMessage("Bitte einen Betrag zum Einzahlen eingeben.");
+      return;
+    }
+
+    if (currency === "EURC" && !isApproved) {
+      setStatusMessage("Bitte approve für EURC bestätigen.");
+      return;
+    }
+
+    const amount = currency === "ETH"
+      ? ethers.parseEther(depositAmount.toString())
+      : ethers.parseUnits(depositAmount.toString(), 18);
+
+    try {
+      if (currency === "EURC") {
+        await callSendEURCtoContract(amount);
+      } else {
+        await callSendETHtoContract(amount);
+      }
+      setStatusMessage(`Einzahlung erfolgreich (${depositAmount} ${currency}).`);
+      setDepositAmount("");
+      setIsApproved(false);
+    } catch (error) {
+      setStatusMessage(error.message || "Einzahlung fehlgeschlagen.");
+    }
   };
 
   return (
@@ -125,7 +219,7 @@ function PaymentPage() {
                     cursor="pointer"
                     bg={currency === "ETH" ? "#7C3AED" : "transparent"}
                     color={currency === "ETH" ? "white" : "#475569"}
-                    onClick={() => setCurrency("ETH")}
+                    onClick={() => { setCurrency("ETH"); setIsApproved(false); }}
                     transition="all 0.15s"
                   >
                     ETH
@@ -230,7 +324,7 @@ function PaymentPage() {
                   cursor="pointer"
                   bg={currency === "ETH" ? "#7C3AED" : "transparent"}
                   color={currency === "ETH" ? "white" : "#475569"}
-                  onClick={() => setCurrency("ETH")}
+                  onClick={() => { setCurrency("ETH"); setIsApproved(false); }}
                   transition="all 0.15s"
                 >
                   ETH
@@ -281,16 +375,28 @@ function PaymentPage() {
                   </Box>
                 </Flex>
               </Stack>
-
-              <Button
-                bg="#0F766E"
-                color="white"
-                fontWeight="600"
-                _hover={{ bg: "#115E59" }}
-                onClick={handleDeposit}
-              >
-                In House Pool einzahlen
-              </Button>
+            {currency === "EURC" && (
+            <Checkbox.Root
+              checked={isApproved}
+              onCheckedChange={(details) => setIsApproved(details.checked)}
+            >
+              <Checkbox.HiddenInput />
+              <Checkbox.Control />
+              <Checkbox.Label>Approve Transaktion</Checkbox.Label>
+            </Checkbox.Root>
+            )}
+            <Button
+              bg="#0F766E"
+              color="white"
+              fontWeight="600"
+              _hover={{ bg: "#115E59" }}
+              disabled={currency === "EURC" ? !isApproved : false}
+              opacity={currency === "EURC" && !isApproved ? 0.5 : 1}
+              cursor={currency === "EURC" && !isApproved ? "not-allowed" : "pointer"}
+              onClick={handleDeposit}
+            >
+              Einzahlen
+            </Button>
             </Stack>
             </Tabs.Content>
           </Box>

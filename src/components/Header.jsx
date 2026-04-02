@@ -1,10 +1,11 @@
 import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { LuHouse, LuLogIn } from "react-icons/lu";
-import { ping } from "../../ethereum/ethereum";
+import { ping, getETHPrice } from "../../ethereum/ethereum";
 
 function Header({ activePage, onNavigate }) {
   const [isConnected, setIsConnected] = useState(false);
+  const [ethPrice, setEthPrice] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -29,7 +30,29 @@ function Header({ activePage, onNavigate }) {
       isMounted = false;
       clearInterval(intervalId);
     };
-  }, []);
+  },
+  []);
+
+  useEffect(() => {
+    const fetchGetETHPrice = async () => {
+      try {
+        console.log("try to get current ether price!");
+        const response = await getETHPrice();
+        const fixedPrice = response.result.ethusd.slice(0, -9); 
+        setEthPrice(fixedPrice);
+        console.log("ETHPrice: ", response.result.ethusd);
+      } catch (error) {
+        console.log("Cant get current ETH Price!");
+        console.log("Error: ", error);
+      }
+    };
+
+    fetchGetETHPrice();
+
+    return () => {
+    };
+  },
+  []);
 
   return (
     <Flex
@@ -112,6 +135,9 @@ function Header({ activePage, onNavigate }) {
 
       <Flex flex="1" justify="flex-end">
         <HStack gap={3} mr={3}>
+          <Text fontSize="sm" fontWeight="600" color="#3B82F6">
+            ETH: {ethPrice} $
+        </Text>
           <Box
             w="8px"
             h="8px"

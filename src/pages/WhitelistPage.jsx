@@ -6,15 +6,29 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { addWhitelistAddresses, deleteWhitelistAddresses } from "../../ethereum/ethereumWhitelist";
+import { addWhitelistAddresses, deleteWhitelistAddresses, getWhitelist } from "../../ethereum/ethereumWhitelist";
 import PageIntro from "../components/PageIntro";
-import { useState } from "react";
-import { LuPlus, LuTrash2 } from "react-icons/lu";
+import { useState, useEffect } from "react";
+import { LuPlus, LuTrash2, LuClipboardList } from "react-icons/lu";
 
 function WhitelistPage() {
   const [addressToAdd, setAddressToAdd] = useState("");
   const [addressToDelete, setAddressToDelete] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [whitelist, setWhitelist] = useState([]);
+
+  useEffect(() => {
+    const loadWhitelist = async () => {
+      try {
+        // Temporär Mock-Daten, da Backend noch nicht verbunden
+        const combined = [{ name: "Hans", address: "0x123" }];
+        setWhitelist(combined);
+      } catch (error) {
+        setStatusMessage("Fehler beim Laden der Whitelist: " + error.message);
+      }
+    };
+    loadWhitelist();
+  }, []);
 
   const addWhitelistAddress = async (address) => {
     if (!address) {
@@ -24,6 +38,11 @@ function WhitelistPage() {
     try{
       console.log("Addresses added!");
       await addWhitelistAddresses(address);
+      setStatusMessage("Adresse erfolgreich hinzugefügt.");
+      setAddressToAdd(""); // Input leeren
+      // Liste neu laden
+      const data = await getWhitelist();
+      setWhitelist(data);
     }
 
     catch(error){
@@ -39,6 +58,10 @@ function WhitelistPage() {
     try {
       console.log("Address deleted!");
       await deleteWhitelistAddresses(address);
+      setStatusMessage("Adresse erfolgreich entfernt.");
+      // Liste neu laden
+      const data = await getWhitelist();
+      setWhitelist(data);
     } catch (error) {
       setStatusMessage(error.message || "Löschen konnte nicht ausgefuehrt werden.");
     }
@@ -110,7 +133,7 @@ function WhitelistPage() {
           {/* Divider */}
           <Box borderTop="1px solid" borderColor="#F1F5F9" />
 
-          {/* Delete Section */}
+          {/* Whitelist List */}
           <Box p={6}>
             <Flex align="center" justify="space-between" mb={4}>
               <Flex align="center" gap={3}>
@@ -120,41 +143,39 @@ function WhitelistPage() {
                   borderRadius="full"
                   align="center"
                   justify="center"
-                  bg="#FEF2F2"
-                  color="#B91C1C"
+                  bg="#F0FDF4"
+                  color="#166534"
                   flexShrink={0}
                 >
-                  <LuTrash2 size={18} />
+                  <LuClipboardList size={18} />
                 </Flex>
                 <Box>
-                  <Text fontWeight="700" color="#0F172A" fontSize="sm">Adresse entfernen</Text>
+                  <Text fontWeight="700" color="#0F172A" fontSize="sm">Whitelist ({whitelist.length})</Text>
                 </Box>
               </Flex>
             </Flex>
-            <Flex gap={3}>
-              <Input
-                value={addressToDelete}
-                onChange={(event) => setAddressToDelete(event.target.value)}
-                placeholder="0x..."
-                bg="#F8FAFC"
-                borderColor="#E2E8F0"
-                flex="1"
-                _focusVisible={{ borderColor: "#FCA5A5", boxShadow: "0 0 0 1px #FCA5A5", bg: "white" }}
-              />
-              <Button
-                bg="#B91C1C"
-                color="white"
-                fontWeight="600"
-                px={5}
-                width="140px"
-                _hover={{ bg: "#991B1B" }}
-                onClick={() => handleDeleteAddress(addressToDelete)}
-                flexShrink={0}
-              >
-                <LuTrash2 />
-                Löschen
-              </Button>
-            </Flex>
+            <Stack gap={3}>
+              {whitelist.map((item, index) => (
+                <Flex key={index} align="center" justify="space-between" p={3} bg="#F8FAFC" borderRadius="md">
+                  <Box>
+                    <Text fontWeight="600" color="#0F172A">{item.name}</Text>
+                    <Text fontSize="sm" color="#64748B">{item.address}</Text>
+                  </Box>
+                  <Button
+                    size="sm"
+                    bg="#B91C1C"
+                    color="white"
+                    _hover={{ bg: "#991B1B" }}
+                    onClick={() => handleDeleteAddress(item.address)}
+                  >
+                    <LuTrash2 size={14} />
+                  </Button>
+                </Flex>
+              ))}
+              {whitelist.length === 0 && (
+                <Text color="#64748B" textAlign="center">Keine Adressen in der Whitelist.</Text>
+              )}
+            </Stack>
           </Box>
         </Box>
 
