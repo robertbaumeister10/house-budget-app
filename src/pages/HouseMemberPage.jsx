@@ -9,9 +9,9 @@ import {
   Text,
 } from "@chakra-ui/react";
 import PageIntro from "../components/PageIntro";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LuPlus, LuTrash2, LuUserRound, LuWallet, LuTrendingUp, LuTrendingDown, LuPersonStanding } from "react-icons/lu";
-import { addHouseMember, deleteHouseMember } from "../../ethereum/ethereumMembers";
+import { addHouseMember, deleteHouseMember, getAllHouseMembers } from "../../ethereum/ethereumMembers";
 
 
 function HouseMemberPage() {
@@ -44,14 +44,21 @@ function HouseMemberPage() {
     },
   ]);
 
-  const addMember = async (memberName, memberAddress, memberBalance, memberDebts) => {
-    if (!memberName|| !memberAddress) {
-        setStatusMessage("Bitte mindestens Name und Adresse eingeben.");
-      return;
-    }
+  useEffect(() => {
+      const loadMemberList = async () => {
+        try {
+          await getAllHouseMembers();
+        } catch (error) {
+          setStatusMessage("Fehler beim Laden der Memberlist: " + error.message);
+        }
+      };
+      loadMemberList();
+  }, []);
+
+  const addMember = async (memberName, memberAddress) => {
     try{
           console.log("Member added!");
-          await addHouseMember(memberName, memberAddress, memberBalance, memberDebts);
+          await addHouseMember(memberName, memberAddress);
         }
     
         catch(error){
@@ -61,10 +68,6 @@ function HouseMemberPage() {
   };
 
   const removeMember = async (memberAddress) => {
-      if (!memberAddress) {
-        setStatusMessage("Bitte eine Adresse eingeben.");
-      return;
-    }
     try{
           console.log("Member deleted!");
           await deleteHouseMember(memberAddress);
@@ -79,96 +82,6 @@ function HouseMemberPage() {
       <PageIntro title="Members" />
 
       <Stack width="full" align="center" gap={4}>
-
-        {/* Add Card */}
-        <Box
-          width={{ base: "100%", lg: "70%" }}
-          bg="white"
-          border="1px solid"
-          borderColor="#E2E8F0"
-          borderRadius="2xl"
-          p={6}
-          boxShadow="0 18px 40px rgba(15, 23, 42, 0.06)"
-        >
-          <Flex align="center" gap={3} mb={5}>
-            <Flex
-              w="36px"
-              h="36px"
-              borderRadius="full"
-              align="center"
-              justify="center"
-              bg="#EFF6FF"
-              color="#2563EB"
-              flexShrink={0}
-            >
-              <LuPlus size={18} />
-            </Flex>
-            <Box>
-              <Text fontWeight="700" color="#0F172A" fontSize="sm">Member hinzufügen</Text>
-            </Box>
-          </Flex>
-
-          <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={3} mb={4}>
-            <Stack gap={1.5}>
-              <Text fontSize="xs" fontWeight="600" color="#475569">Name</Text>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="z.B. Anna"
-                bg="#F8FAFC"
-                borderColor="#E2E8F0"
-                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
-              />
-            </Stack>
-            <Stack gap={1.5}>
-              <Text fontSize="xs" fontWeight="600" color="#475569">Wallet-Adresse</Text>
-              <Input
-                value={newAddress}
-                onChange={(e) => setNewAddress(e.target.value)}
-                placeholder="0x..."
-                bg="#F8FAFC"
-                borderColor="#E2E8F0"
-                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
-              />
-            </Stack>
-            <Stack gap={1.5}>
-              <Text fontSize="xs" fontWeight="600" color="#475569">Balance</Text>
-              <Input
-                value={newBalance}
-                onChange={(e) => setNewBalance(e.target.value)}
-                placeholder="z.B. 1.5 ETH"
-                bg="#F8FAFC"
-                borderColor="#E2E8F0"
-                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
-              />
-            </Stack>
-            <Stack gap={1.5}>
-              <Text fontSize="xs" fontWeight="600" color="#475569">Schulden</Text>
-              <Input
-                value={newSchulden}
-                onChange={(e) => setNewSchulden(e.target.value)}
-                placeholder="z.B. 0.2 ETH"
-                bg="#F8FAFC"
-                borderColor="#E2E8F0"
-                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
-              />
-            </Stack>
-          </Grid>
-
-          <Button
-            bg="#2563EB"
-            color="white"
-            fontWeight="600"
-            width="full"
-            _hover={{ bg: "#1D4ED8" }}
-            onClick={addMember}
-          >
-            <LuPlus />
-            Member hinzufügen
-          </Button>
-        </Box>
-
-        {/* Member List Card */}
         <Box
           width={{ base: "100%", lg: "70%" }}
           bg="white"
@@ -262,7 +175,71 @@ function HouseMemberPage() {
           </Stack>
         </Box>
 
-        {/* Status */}
+        <Box
+          width={{ base: "100%", lg: "70%" }}
+          bg="white"
+          border="1px solid"
+          borderColor="#E2E8F0"
+          borderRadius="2xl"
+          p={6}
+          boxShadow="0 18px 40px rgba(15, 23, 42, 0.06)"
+        >
+          <Flex align="center" gap={3} mb={5}>
+            <Flex
+              w="36px"
+              h="36px"
+              borderRadius="full"
+              align="center"
+              justify="center"
+              bg="#EFF6FF"
+              color="#2563EB"
+              flexShrink={0}
+            >
+              <LuPlus size={18} />
+            </Flex>
+            <Box>
+              <Text fontWeight="700" color="#0F172A" fontSize="sm">Member hinzufügen</Text>
+            </Box>
+          </Flex>
+
+          <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={3} mb={4}>
+            <Stack gap={1.5}>
+              <Text fontSize="xs" fontWeight="600" color="#475569">Name</Text>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="z.B. Anna"
+                bg="#F8FAFC"
+                borderColor="#E2E8F0"
+                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
+              />
+            </Stack>
+            <Stack gap={1.5}>
+              <Text fontSize="xs" fontWeight="600" color="#475569">Walletadresse</Text>
+              <Input
+                value={newAddress}
+                onChange={(e) => setNewAddress(e.target.value)}
+                placeholder="0x..."
+                bg="#F8FAFC"
+                borderColor="#E2E8F0"
+                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
+              />
+            </Stack>
+          </Grid>
+
+          <Button
+            bg="#2563EB"
+            color="white"
+            fontWeight="600"
+            width="full"
+            _hover={{ bg: "#1D4ED8" }}
+            onClick={() => addMember(newName, newAddress)}
+          >
+            <LuPlus />
+            Member hinzufügen
+          </Button>
+        </Box>
+
         <Box
           width={{ base: "100%", lg: "70%" }}
           bg="#F8FAFC"

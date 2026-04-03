@@ -83,7 +83,62 @@ function WhitelistPage() {
           overflow="hidden"
           boxShadow="0 18px 40px rgba(15, 23, 42, 0.06)"
         >
-          {/* Add Section */}
+          {/* Whitelist List */}
+          <Box p={6}>
+            <Flex align="center" justify="space-between" mb={4}>
+              <Flex align="center" gap={3}>
+                <Flex
+                  w="36px"
+                  h="36px"
+                  borderRadius="full"
+                  align="center"
+                  justify="center"
+                  bg="#F0FDF4"
+                  color="#166534"
+                  flexShrink={0}
+                >
+                  <LuClipboardList size={18} />
+                </Flex>
+                <Box>
+                  <Text fontWeight="700" color="#0F172A" fontSize="sm">Whitelist ({whitelist.length})</Text>
+                </Box>
+              </Flex>
+            </Flex>
+            <Stack gap={3}>
+              {whitelist.map((item, index) => (
+                <Flex key={index} align="center" justify="space-between" p={3} bg="#F8FAFC" borderRadius="md">
+                  <Box>
+                    <Text fontWeight="600" color="#0F172A">{item.name}</Text>
+                    <Text fontSize="sm" color="#64748B">{item.address}</Text>
+                  </Box>
+                  <Button
+                    size="sm"
+                    bg="#B91C1C"
+                    color="white"
+                    _hover={{ bg: "#991B1B" }}
+                    onClick={() => handleDeleteAddress(item.address)}
+                  >
+                    <LuTrash2 size={14} />
+                  </Button>
+                </Flex>
+              ))}
+              {whitelist.length === 0 && (
+                <Text color="#64748B" textAlign="center">Keine Adressen in der Whitelist.</Text>
+              )}
+            </Stack>
+          </Box>
+          </Box>
+
+                    {/* Add Section */}
+          <Box
+          width={{ base: "100%", lg: "70%" }}
+          bg="white"
+          border="1px solid"
+          borderColor="#E2E8F0"
+          borderRadius="2xl"
+          overflow="hidden"
+          boxShadow="0 18px 40px rgba(15, 23, 42, 0.06)"
+        >          
           <Box p={6}>
             <Flex align="center" justify="space-between" mb={4}>
               <Flex align="center" gap={3}>
@@ -128,54 +183,6 @@ function WhitelistPage() {
                 Hinzufügen
               </Button>
             </Flex>
-          </Box>
-
-          {/* Divider */}
-          <Box borderTop="1px solid" borderColor="#F1F5F9" />
-
-          {/* Whitelist List */}
-          <Box p={6}>
-            <Flex align="center" justify="space-between" mb={4}>
-              <Flex align="center" gap={3}>
-                <Flex
-                  w="36px"
-                  h="36px"
-                  borderRadius="full"
-                  align="center"
-                  justify="center"
-                  bg="#F0FDF4"
-                  color="#166534"
-                  flexShrink={0}
-                >
-                  <LuClipboardList size={18} />
-                </Flex>
-                <Box>
-                  <Text fontWeight="700" color="#0F172A" fontSize="sm">Whitelist ({whitelist.length})</Text>
-                </Box>
-              </Flex>
-            </Flex>
-            <Stack gap={3}>
-              {whitelist.map((item, index) => (
-                <Flex key={index} align="center" justify="space-between" p={3} bg="#F8FAFC" borderRadius="md">
-                  <Box>
-                    <Text fontWeight="600" color="#0F172A">{item.name}</Text>
-                    <Text fontSize="sm" color="#64748B">{item.address}</Text>
-                  </Box>
-                  <Button
-                    size="sm"
-                    bg="#B91C1C"
-                    color="white"
-                    _hover={{ bg: "#991B1B" }}
-                    onClick={() => handleDeleteAddress(item.address)}
-                  >
-                    <LuTrash2 size={14} />
-                  </Button>
-                </Flex>
-              ))}
-              {whitelist.length === 0 && (
-                <Text color="#64748B" textAlign="center">Keine Adressen in der Whitelist.</Text>
-              )}
-            </Stack>
           </Box>
         </Box>
 
