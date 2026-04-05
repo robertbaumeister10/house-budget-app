@@ -1,11 +1,13 @@
 import { Box, Button, Flex, HStack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { LuHouse, LuLogIn } from "react-icons/lu";
-import { ping, getETHPrice } from "../../ethereum/ethereum";
+import { LuHouse, LuLogIn, LuUserCheck, LuLogOut } from "react-icons/lu";
+import { ping, getETHPrice, connectWallet } from "../../ethereum/ethereum";
 
 function Header({ activePage, onNavigate }) {
-  const [isConnected, setIsConnected] = useState(false);
+  const [isContractConnected, setIsContractConnected] = useState(false);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [ethPrice, setEthPrice] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -14,11 +16,11 @@ function Header({ activePage, onNavigate }) {
       try {
         await ping();
         if (isMounted) {
-          setIsConnected(true);
+          setIsContractConnected(true);
         }
       } catch {
         if (isMounted) {
-          setIsConnected(false);
+          setIsContractConnected(false);
         }
       }
     };
@@ -142,25 +144,50 @@ function Header({ activePage, onNavigate }) {
             w="8px"
             h="8px"
             borderRadius="full"
-            bg={isConnected ? "green.400" : "red.400"}
+            bg={isContractConnected ? "green.400" : "red.400"}
           />
-          <Text fontSize="sm" color={isConnected ? "green.700" : "red.700"} fontWeight="600">
-            {isConnected ? "Connected" : "Disconnected"}
+          <Text fontSize="sm" color={isContractConnected ? "green.700" : "red.700"} fontWeight="600">
+            {isContractConnected ? "Connected" : "Disconnected"}
           </Text>
         </HStack>
         <Button
-          bg="white"
-          color="#1E40AF"
           size="sm"
           fontWeight="600"
           borderRadius="full"
           px={5}
-          _hover={{ bg: "#EFF6FF" }}
           _focus={{ outline: "none", boxShadow: "none" }}
           _focusVisible={{ outline: "none", boxShadow: "none" }}
+          onClick={async () => {
+            if (isWalletConnected) {
+              // Logout
+              setIsWalletConnected(false);
+              setWalletAddress(null);
+              console.log("Wallet disconnected");
+            } else {
+              // Login
+              const signer = await connectWallet();
+              if (signer) {
+                const address = await signer.getAddress();
+                setWalletAddress(address);
+                setIsWalletConnected(true);
+              }
+            }
+          }}
+          bg={isWalletConnected ? "#DC2626" : "white"}
+          color={isWalletConnected ? "white" : "#1E40AF"}
+          _hover={{ bg: isWalletConnected ? "#B91C1C" : "#EFF6FF" }}
         >
-          <LuLogIn />
-          Login
+          {isWalletConnected ? (
+            <>
+              <LuLogOut />
+              Logout
+            </>
+          ) : (
+            <>
+              <LuLogIn />
+              Login
+            </>
+          )}
         </Button>
       </Flex>
     </Flex>

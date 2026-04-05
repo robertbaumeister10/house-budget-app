@@ -12,46 +12,49 @@ import {
 } from "@chakra-ui/react";
 import PageIntro from "../components/PageIntro";
 import {
-  LuArrowLeftRight,
   LuBanknote,
   LuCircleAlert,
-  LuHouse,
-  LuUser,
+  LuCoins,
 } from "react-icons/lu";
+import { useEffect } from "react";
 
 const houseSummary = [
   {
     title: "House Balance",
+    currency: "ETH",
     value: 842.5,
-    accent: "#2563EB",
-    icon: LuHouse,
+    accent: "#7C3AED",
+    accentLight: "#EDE9FE",
+    icon: LuCoins,
+    type: "balance",
   },
   {
     title: "Offene Schulden",
+    currency: "ETH",
     value: 192.3,
-    accent: "#DC2626",
+    accent: "#7C3AED",
+    accentLight: "#EDE9FE",
     icon: LuCircleAlert,
+    type: "debt",
   },
   {
-    title: "Ausgleich diese Woche",
-    value: 310.0,
-    accent: "#059669",
-    icon: LuArrowLeftRight,
+    title: "House Balance",
+    currency: "EURC",
+    value: 842.5,
+    accent: "#2563EB",
+    accentLight: "#DBEAFE",
+    icon: LuBanknote,
+    type: "balance",
   },
-];
-
-const memberBalances = [
-  { name: "Anna", balance: 126.2, share: 82 },
-  { name: "Max", balance: -74.8, share: 61 },
-  { name: "Lena", balance: 18.6, share: 34 },
-  { name: "Tom", balance: -70.0, share: 57 },
-];
-
-const memberDebts = [
-  { from: "Max", to: "Anna", amount: 52.4, due: "Heute" },
-  { from: "Tom", to: "Anna", amount: 37.2, due: "Morgen" },
-  { from: "Tom", to: "Lena", amount: 14.6, due: "In 3 Tagen" },
-  { from: "Max", to: "House Pool", amount: 88.1, due: "Offen" },
+  {
+    title: "Offene Schulden",
+    currency: "EURC",
+    value: 192.3,
+    accent: "#2563EB",
+    accentLight: "#DBEAFE",
+    icon: LuCircleAlert,
+    type: "debt",
+  },
 ];
 
 const formatCurrency = (amount) =>
@@ -60,46 +63,118 @@ const formatCurrency = (amount) =>
     currency: "EUR",
   }).format(amount);
 
-const getBalanceStatus = (balance) => {
-  if (balance > 0) {
-    return {
-      label: "bekommt",
-      color: "#166534",
-      bg: "#DCFCE7",
-      border: "#BBF7D0",
-    };
-  }
+const memberBalances = [
+  {
+    name: "Anna",
+    address: "0x8ba1f109551bd432803012645ac136ddd64dba72",
+    eth: 126.5,
+    eurc: 85.3,
+  },
+  {
+    name: "Max",
+    address: "0xa0ee7a142d267c1f36714e4a8f75612f20a79720",
+    eth: -74.2,
+    eurc: -45.1,
+  },
+  {
+    name: "Lena",
+    address: "0x742d35cc6634c0532925a3b844bc454e4438f44e",
+    eth: 18.9,
+    eurc: 32.8,
+  },
+  {
+    name: "Tom",
+    address: "0x123456789abcdef123456789abcdef123456789",
+    eth: -71.2,
+    eurc: -73.0,
+  },
+];
 
-  if (balance < 0) {
-    return {
-      label: "schuldet",
-      color: "#991B1B",
-      bg: "#FEE2E2",
-      border: "#FECACA",
-    };
-  }
-
-  return {
-    label: "ausgeglichen",
-    color: "#475569",
-    bg: "#E2E8F0",
-    border: "#CBD5E1",
-  };
-};
+const transactions = [
+  {
+    id: 1,
+    timestamp: "2026-04-05 14:32",
+    from: "Anna",
+    amount: 50.5,
+    to: "Max",
+    currency: "ETH",
+  },
+  {
+    id: 2,
+    timestamp: "2026-04-05 13:15",
+    from: "Tom",
+    amount: 100.0,
+    to: "Contract",
+    currency: "EURC",
+  },
+  {
+    id: 3,
+    timestamp: "2026-04-05 12:45",
+    from: "Lena",
+    amount: 25.3,
+    to: "Anna",
+    currency: "ETH",
+  },
+  {
+    id: 4,
+    timestamp: "2026-04-05 11:20",
+    from: "Max",
+    amount: 75.8,
+    to: "Contract",
+    currency: "EURC",
+  },
+  {
+    id: 5,
+    timestamp: "2026-04-05 10:05",
+    from: "Anna",
+    amount: 45.2,
+    to: "Tom",
+    currency: "ETH",
+  },
+];
 
 function BalancePage() {
+  useEffect(() => {
+    const loadFinanceOverview = async () => {
+      try {
+        await getHouseBalanceETH();
+      } catch(error) {
+        console.log("Could not get House Balance ETH:", error);
+      }
+      
+      try {
+        await getHouseBalanceEURC();
+      } catch(error) {
+        console.log("Could not get House Balance EURC:", error);
+      }
+      
+      try {
+        await getHouseDebtsETH();
+      } catch(error) {
+        console.log("Could not get House Debts ETH:", error);
+      }
+      
+      try {
+        await getHouseDebtsEURC();
+      } catch(error) {
+        console.log("Could not get House Debts EURC:", error);
+      }
+    };
+    
+    loadFinanceOverview();
+  }, []);
   return (
     <Stack gap={8} px={{ base: 4, md: 6 }} pb={{ base: 4, md: 6 }} pt={{ base: 1, md: 2 }}>
       <PageIntro
         title="Finance Overview"      />
 
-      <SimpleGrid columns={{ base: 1, md: 2, xl: 3 }} gap={4}>
+      <SimpleGrid columns={{ base: 1, md: 2, xl: 4 }} gap={4}>
         {houseSummary.map((item) => {
           const Icon = item.icon;
 
           return (
             <Box
-              key={item.title}
+              key={`${item.title}-${item.currency}`}
               bg="white"
               border="1px solid"
               borderColor="#E2E8F0"
@@ -108,10 +183,29 @@ function BalancePage() {
               boxShadow="0 18px 40px rgba(15, 23, 42, 0.06)"
             >
               <Flex align="flex-start" justify="space-between" gap={4}>
-                <Stack gap={2}>
-                  <Text fontSize="sm" color="#64748B" fontWeight="600">
-                    {item.title}
-                  </Text>
+                <Stack gap={2} flex={1}>
+                  <Flex align="center" gap={2}>
+                    <Text 
+                      fontSize="sm" 
+                      fontWeight="600"
+                      color={item.type === "balance" ? "#16A34A" : "#DC2626"}
+                    >
+                      {item.title}
+                    </Text>
+                    <Badge
+                      fontSize="xs"
+                      fontWeight="700"
+                      px={2}
+                      py={0.5}
+                      borderRadius="full"
+                      bg={item.accentLight}
+                      color={item.accent}
+                      textTransform="uppercase"
+                      letterSpacing="0.5px"
+                    >
+                      {item.currency}
+                    </Badge>
+                  </Flex>
                   <Text
                     fontSize="3xl"
                     fontWeight="800"
@@ -119,9 +213,6 @@ function BalancePage() {
                     fontVariantNumeric="tabular-nums"
                   >
                     {formatCurrency(item.value)}
-                  </Text>
-                  <Text fontSize="sm" color="#475569">
-                    {item.description}
                   </Text>
                 </Stack>
 
@@ -143,224 +234,126 @@ function BalancePage() {
         })}
       </SimpleGrid>
 
-      <Grid templateColumns={{ base: "1fr", xl: "1.3fr 0.9fr" }} gap={5}>
+      <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={5}>
+        {/* Member Balances Box */}
         <Box
           bg="white"
           border="1px solid"
           borderColor="#E2E8F0"
           borderRadius="2xl"
-          p={5}
-          boxShadow="0 18px 40px rgba(15, 23, 42, 0.05)"
+          p={6}
+          boxShadow="0 18px 40px rgba(15, 23, 42, 0.06)"
         >
-          <Flex
-            justify="space-between"
-            align={{ base: "flex-start", md: "center" }}
-            direction={{ base: "column", md: "row" }}
-            gap={3}
-            mb={5}
-          >
-            <Stack gap={1}>
-              <Heading size="md" color="#0F172A">
-                Balance pro Mitglied
-              </Heading>
-              <Text color="#64748B">
-              </Text>
-            </Stack>
-
-            <Button
-              size="sm"
-              bg="#EFF6FF"
-              color="#1D4ED8"
-              border="1px solid"
-              borderColor="#BFDBFE"
-              _hover={{ bg: "#DBEAFE" }}
-            >
-              Alle Details
-            </Button>
+          <Flex align="center" gap={3} mb={5}>
+            <Box>
+              <Text fontWeight="700" color="#0F172A" fontSize="sm">Member Kontostände</Text>
+              <Text fontSize="xs" color="#94A3B8">{memberBalances.length} Mitglieder</Text>
+            </Box>
           </Flex>
 
           <Stack gap={3}>
-            {memberBalances.map((member) => {
-              const status = getBalanceStatus(member.balance);
-
-              return (
-                <Box
-                  key={member.name}
-                  border="1px solid"
-                  borderColor="#E2E8F0"
-                  borderRadius="xl"
-                  px={4}
-                  py={4}
-                >
-                  <Flex
-                    justify="space-between"
-                    align={{ base: "flex-start", md: "center" }}
-                    direction={{ base: "column", md: "row" }}
-                    gap={3}
-                  >
-                    <HStack gap={3} align="center">
-                      <Flex
-                        w="42px"
-                        h="42px"
-                        borderRadius="full"
-                        align="center"
-                        justify="center"
-                        bg="#EFF6FF"
-                        color="#1D4ED8"
+            {memberBalances.map((member) => (
+              <Box
+                key={member.address}
+                border="1px solid"
+                borderColor="#E2E8F0"
+                borderRadius="xl"
+                px={4}
+                py={3}
+              >
+                <Stack gap={2}>
+                  <Box>
+                    <Text fontWeight="700" color="#0F172A" fontSize="sm">{member.name}</Text>
+                    <Text fontSize="xs" color="#94A3B8">{member.address}</Text>
+                  </Box>
+                  <Flex gap={4}>
+                    <Box flex={1}>
+                      <Text fontSize="xs" color="#64748B" fontWeight="500">ETH</Text>
+                      <Text 
+                        fontWeight="700" 
+                        fontSize="sm" 
+                        color={member.eth >= 0 ? "#16A34A" : "#DC2626"}
                       >
-                        <LuUser size={18} />
-                      </Flex>
-
-                      <Stack gap={1}>
-                        <Text fontWeight="700" color="#0F172A">
-                          {member.name}
-                        </Text>
-                        <Badge
-                          width="fit-content"
-                          px={2.5}
-                          py={1}
-                          borderRadius="full"
-                          border="1px solid"
-                          borderColor={status.border}
-                          bg={status.bg}
-                          color={status.color}
-                          textTransform="none"
-                        >
-                          {status.label}
-                        </Badge>
-                      </Stack>
-                    </HStack>
-
-                    <Stack gap={1} minW={{ md: "220px" }}>
-                      <Text
-                        textAlign={{ base: "left", md: "right" }}
-                        fontWeight="800"
-                        fontSize="xl"
-                        color={member.balance >= 0 ? "#166534" : "#B91C1C"}
-                        fontVariantNumeric="tabular-nums"
-                      >
-                        {formatCurrency(member.balance)}
+                        {member.eth >= 0 ? "+" : ""}{member.eth.toFixed(2)}
                       </Text>
-                      <Box
-                        h="8px"
-                        borderRadius="full"
-                        bg="#E2E8F0"
-                        overflow="hidden"
+                    </Box>
+                    <Box flex={1}>
+                      <Text fontSize="xs" color="#64748B" fontWeight="500">EURC</Text>
+                      <Text 
+                        fontWeight="700" 
+                        fontSize="sm" 
+                        color={member.eurc >= 0 ? "#16A34A" : "#DC2626"}
                       >
-                        <Box
-                          h="full"
-                          borderRadius="full"
-                          bg={member.balance >= 0 ? "#22C55E" : "#EF4444"}
-                          width={`${member.share}%`}
-                        />
-                      </Box>
-                    </Stack>
+                        {member.eurc >= 0 ? "+" : ""}{member.eurc.toFixed(2)}
+                      </Text>
+                    </Box>
                   </Flex>
-                </Box>
-              );
-            })}
+                </Stack>
+              </Box>
+            ))}
           </Stack>
         </Box>
 
-        <Stack gap={5}>
-          <Box
-            bg="linear-gradient(135deg, #1D4ED8 0%, #0F172A 100%)"
-            color="white"
-            borderRadius="2xl"
-            p={5}
-            boxShadow="0 18px 40px rgba(37, 99, 235, 0.20)"
-          >
-            <HStack justify="space-between" align="flex-start" mb={5}>
-              <Stack gap={1}>
-                <Text color="rgba(255,255,255,0.75)" fontWeight="600">
-                  Naechster Ausgleich
-                </Text>
-              </Stack>
-              <Flex
-                w="44px"
-                h="44px"
-                borderRadius="full"
-                bg="rgba(255,255,255,0.16)"
-                align="center"
-                justify="center"
+        {/* Transactions Box */}
+        <Box
+          bg="white"
+          border="1px solid"
+          borderColor="#E2E8F0"
+          borderRadius="2xl"
+          p={6}
+          boxShadow="0 18px 40px rgba(15, 23, 42, 0.06)"
+        >
+          <Flex align="center" gap={3} mb={5}>
+            <Box>
+              <Text fontWeight="700" color="#0F172A" fontSize="sm">Transaktionen</Text>
+              <Text fontSize="xs" color="#94A3B8">{transactions.length} Transaktionen</Text>
+            </Box>
+          </Flex>
+
+          <Stack gap={2}>
+            {transactions.map((tx) => (
+              <Box
+                key={tx.id}
+                border="1px solid"
+                borderColor="#E2E8F0"
+                borderRadius="xl"
+                px={4}
+                py={3}
               >
-                <LuBanknote size={20} />
-              </Flex>
-            </HStack>
-
-            <Text
-              fontSize="4xl"
-              fontWeight="800"
-              fontVariantNumeric="tabular-nums"
-              lineHeight="1"
-              mb={3}
-            >
-              {formatCurrency(52.4)}
-            </Text>
-          </Box>
-
-          <Box
-            bg="white"
-            border="1px solid"
-            borderColor="#E2E8F0"
-            borderRadius="2xl"
-            p={5}
-            boxShadow="0 18px 40px rgba(15, 23, 42, 0.05)"
-          >
-            <Stack gap={1} mb={5}>
-              <Heading size="md" color="#0F172A">
-                Offene Schulden
-              </Heading>
-              <Text color="#64748B">
-              </Text>
-            </Stack>
-
-            <Stack gap={3}>
-              {memberDebts.map((debt) => (
-                <Box
-                  key={`${debt.from}-${debt.to}-${debt.amount}`}
-                  border="1px solid"
-                  borderColor="#E2E8F0"
-                  borderRadius="xl"
-                  p={4}
-                >
-                  <Flex justify="space-between" align="flex-start" gap={3}>
-                    <Stack gap={1}>
-                      <Text fontWeight="700" color="#0F172A">
-                        {debt.from} schuldet {debt.to}
-                      </Text>
-                      <Text color="#64748B" fontSize="sm">
-                        Faellig: {debt.due}
-                      </Text>
-                    </Stack>
-
-                    <Stack gap={2} align="flex-end">
-                      <Text
-                        fontWeight="800"
-                        color="#B91C1C"
-                        fontVariantNumeric="tabular-nums"
-                      >
-                        {formatCurrency(debt.amount)}
-                      </Text>
+                <Flex justify="space-between" align="flex-start" gap={3}>
+                  <Stack gap={1} flex={1} minW={0}>
+                    <Flex align="center" gap={2}>
+                      <Text fontSize="xs" color="#94A3B8" fontWeight="500">{tx.timestamp}</Text>
                       <Badge
-                        px={2.5}
-                        py={1}
-                        borderRadius="full"
-                        bg="#FEF3C7"
-                        color="#92400E"
-                        border="1px solid"
-                        borderColor="#FDE68A"
-                        textTransform="none"
+                        fontSize="xs"
+                        fontWeight="700"
+                        px={1.5}
+                        py={0.5}
+                        borderRadius="md"
+                        bg={tx.currency === "ETH" ? "#EDE9FE" : "#DBEAFE"}
+                        color={tx.currency === "ETH" ? "#7C3AED" : "#2563EB"}
+                        textTransform="uppercase"
                       >
-                        offen
+                        {tx.currency}
                       </Badge>
-                    </Stack>
-                  </Flex>
-                </Box>
-              ))}
-            </Stack>
-          </Box>
-        </Stack>
+                    </Flex>
+                    <Text fontSize="xs" color="#0F172A" fontWeight="600">
+                      {tx.from} → {tx.to}
+                    </Text>
+                  </Stack>
+                  <Text 
+                    fontWeight="700" 
+                    fontSize="sm" 
+                    color="#0F172A"
+                    whiteSpace="nowrap"
+                  >
+                    {tx.amount.toFixed(2)}
+                  </Text>
+                </Flex>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
       </Grid>
     </Stack>
   );

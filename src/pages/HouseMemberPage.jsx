@@ -236,7 +236,7 @@ function HouseMemberPage() {
             onClick={() => addMember(newName, newAddress)}
           >
             <LuPlus />
-            Member hinzufügen
+            hinzufügen
           </Button>
         </Box>
 
