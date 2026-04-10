@@ -10,16 +10,15 @@ import {
 } from "@chakra-ui/react";
 import PageIntro from "../components/PageIntro";
 import { useState, useEffect } from "react";
-import { LuPlus, LuTrash2, LuUserRound, LuWallet, LuTrendingUp, LuTrendingDown, LuPersonStanding } from "react-icons/lu";
+import { LuPlus, LuTrash2, LuUserRound, LuWallet, LuTrendingUp, LuTrendingDown, LuPersonStanding, LuActivity, LuUserX } from "react-icons/lu";
 import { addHouseMember, deleteHouseMember, getAllHouseMembers } from "../../ethereum/ethereumMembers";
 
 
 function HouseMemberPage() {
   const [newName, setNewName] = useState("");
   const [newAddress, setNewAddress] = useState("");
-  const [newBalance, setNewBalance] = useState("");
-  const [newSchulden, setNewSchulden] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [memberActivationState, setMemberActivationState] = useState({});
   const [members] = useState([
     {
       id: 1,
@@ -43,6 +42,28 @@ function HouseMemberPage() {
       schulden: "0.6 ETH",
     },
   ]);
+
+  async function deactivateUser(member){
+    try{
+      await deactivateUser(member);
+    }
+
+    catch(error){
+      setStatusMessage(error.message || "Could not deactivate user!");
+    }
+    console.log("User deactivated!");
+  }
+
+  async function activateUser(member){
+    try{
+      await activateUser(member);
+    }
+
+    catch(error){
+      setStatusMessage(error.message || "Could not activate user!");
+    }
+    console.log("User activated!");
+  }
 
   useEffect(() => {
       const loadMemberList = async () => {
@@ -111,7 +132,10 @@ function HouseMemberPage() {
           </Flex>
 
           <Stack gap={3}>
-            {members.map((member) => (
+            {members.map((member) => {
+              const isUserActivated = Boolean(memberActivationState[member.id]);
+
+              return (
               <Box
                 key={member.id}
                 border="1px solid"
@@ -159,10 +183,43 @@ function HouseMemberPage() {
 
                   <Button
                     variant="outline"
+                    color={isUserActivated ? "#166534" : "#B91C1C"}
+                    borderColor={isUserActivated ? "#BBF7D0" : "#FECACA"}
+                    bg={isUserActivated ? "#F0FDF4" : "#FEF2F2"}
+                    size="sm"
+                    title="Nutzer aktivieren bzw. deaktivieren"
+                    _hover={isUserActivated
+                      ? { bg: "#DCFCE7", borderColor: "#86EFAC" }
+                      : { bg: "#FEE2E2", borderColor: "#FCA5A5" }}
+                    onClick={async () => {
+                        if (isUserActivated) {
+                          setMemberActivationState((prev) => ({ ...prev, [member.id]: false }));
+                          activateUser();
+                        } else {
+                          setMemberActivationState((prev) => ({ ...prev, [member.id]: true }));
+                          deactivateUser();
+                        }
+                    }}
+                    flexShrink={0}
+                  >
+                    {isUserActivated ? (
+                      <>
+                        <LuActivity />
+                      </>
+                    ) : (
+                      <>
+                        <LuUserX />
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="outline"
                     color="#B91C1C"
                     borderColor="#FECACA"
                     bg="#FEF2F2"
                     size="sm"
+                    title="Nutzer löschen"
                     _hover={{ bg: "#FEE2E2", borderColor: "#FCA5A5" }}
                     onClick={() => removeMember(member)}
                     flexShrink={0}
@@ -171,7 +228,8 @@ function HouseMemberPage() {
                   </Button>
                 </Flex>
               </Box>
-            ))}
+              );
+            })}
           </Stack>
         </Box>
 

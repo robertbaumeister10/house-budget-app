@@ -17,6 +17,7 @@ import {
   LuCoins,
 } from "react-icons/lu";
 import { useEffect } from "react";
+import { getFinancialOverview, getTransactionHistory } from "../../ethereum/ethereumBalance";
 
 const houseSummary = [
   {
@@ -137,25 +138,13 @@ function BalancePage() {
   useEffect(() => {
     const loadFinanceOverview = async () => {
       try {
-        await getHouseBalanceETH();
+        await getFinancialOverview();
       } catch(error) {
-        console.log("Could not get House Balance ETH:", error);
+        console.log("Could not get House Debts EURC:", error);
       }
-      
+
       try {
-        await getHouseBalanceEURC();
-      } catch(error) {
-        console.log("Could not get House Balance EURC:", error);
-      }
-      
-      try {
-        await getHouseDebtsETH();
-      } catch(error) {
-        console.log("Could not get House Debts ETH:", error);
-      }
-      
-      try {
-        await getHouseDebtsEURC();
+        await getTransactionHistory();
       } catch(error) {
         console.log("Could not get House Debts EURC:", error);
       }

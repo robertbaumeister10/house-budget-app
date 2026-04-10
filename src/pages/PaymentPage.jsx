@@ -28,7 +28,6 @@ function PaymentPage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [currency, setCurrency] = useState("ETH");
   const [isApproved, setIsApproved] = useState(false);
-  const [isApproving, setIsApproving] = useState(false);
 
   const callApproveEURCTransfer = async (address) => {
       try{

@@ -13,7 +13,7 @@ function Footer() {
       justify="flex-end"
     >
       <Text fontSize="xs" color="#94A3B8">
-        v0.1
+        v0.2
       </Text>
     </Flex>
   );

@@ -40,10 +40,9 @@ function WhitelistPage() {
       console.log("Addresses added!");
       await addWhitelistAddresses(address);
       setStatusMessage("Adresse erfolgreich hinzugefügt.");
-      setAddressToAdd(""); // Input leeren
-      // Liste neu laden
-      const data = await getWhitelist();
-      setWhitelist(data);
+      setAddressToAdd("");
+      //const data = await getWhitelist();
+      //setWhitelist(data);
     }
 
     catch(error){
@@ -60,9 +59,8 @@ function WhitelistPage() {
       console.log("Address deleted!");
       await deleteWhitelistAddresses(address);
       setStatusMessage("Adresse erfolgreich entfernt.");
-      // Liste neu laden
-      const data = await getWhitelist();
-      setWhitelist(data);
+      //const data = await getWhitelist();
+      //setWhitelist(data);
     } catch (error) {
       setStatusMessage(error.message || "Löschen konnte nicht ausgefuehrt werden.");
     }

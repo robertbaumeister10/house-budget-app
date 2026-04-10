@@ -3,15 +3,15 @@ import { ethers } from "ethers";
 const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const PRIVATE_KEY = (import.meta.env.VITE_PRIVATE_KEY || "").trim();
 
-function assertValidPrivateKey(privateKey) {
-  if (!privateKey) {
-    throw new Error("VITE_PRIVATE_KEY fehlt. Bitte in .env setzen.");
-  }
+// function assertValidPrivateKey(privateKey) {
+//   if (!privateKey) {
+//     throw new Error("VITE_PRIVATE_KEY fehlt. Bitte in .env setzen.");
+//   }
 
-  if (!ethers.isHexString(privateKey, 32)) {
-    throw new Error("VITE_PRIVATE_KEY ist ungueltig. Erwartet wird ein 32-Byte Hex-Wert mit 0x-Prefix.");
-  }
-}
+//   if (!ethers.isHexString(privateKey, 32)) {
+//     throw new Error("VITE_PRIVATE_KEY ist ungueltig. Erwartet wird ein 32-Byte Hex-Wert mit 0x-Prefix.");
+//   }
+// }
 
 
 export async function connectWallet(){
@@ -19,14 +19,9 @@ export async function connectWallet(){
     if(!window.ethereum) {
       throw new Error("MetaMask nicht installiert");
     }
-
-    const accounts = await window.ethereum.request({
-      method: 'eth_requestAccounts',
-    });
-
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
-    switchNetwork(provider, signer);
+    await switchNetwork(provider, signer);
     return signer;
   }
   catch(error){
@@ -42,7 +37,7 @@ async function switchNetwork(provider, signer){
         params: [{ chainId: '0xaa36a7' }], // Sepolia
       });
     } catch (error) {
-      console.log("Could not switch to Sepolia Network!");
+      console.log("Could not switch to Sepolia Network!", error);
     }
 
     

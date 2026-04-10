@@ -1,44 +1,36 @@
-import { ethers } from "ethers";
 import { getContract } from "./ethereum";
+import { Alchemy, Network } from "alchemy-sdk";
 
 const contract = getContract();
+const contractAddress = "0x123";
 
-export async function getHouseBalanceETH(){
-    console.log("Get HouseBalance eth!");
+export async function getFinancialOverview(){
+    console.log("Get financial overview!");
     try{
-        return await contract.getHouseBalance();
+        return await contract.getContractFinacialOverview();
     }
-    catch(Error){
-        console.log("Could not get housebalance eth!", Error);
+    catch(error){
+        console.log("Could not get financial overview! ", error);
     }
 }
 
-export async function getHouseBalanceEURC(){
-    console.log("Get HouseBalance eurc!");
+export async function getTransactionHistory(){
+    console.log("Get Contract Transactionhistory!");
     try{
-        return await contract.getHouseBalanceEURC();
-    }
-    catch(Error){
-        console.log("Could not get housebalance eurc!", Error);
-    }
-}
+        const config = {
+        apiKey: import.meta.env.VITE_ALCHEMY_API_KEY,
+        network: Network.ETH_SEPOLIA,
+        };
+        const alchemy = new Alchemy(config);
+        const result = await alchemy.core.getAssetTransfers({
+            contractAddresses: [contractAddress],
+            category: ["erc20"],
+        })
 
-export async function getHouseDebtsETH(){
-    console.log("Get housedebt eth!");
-    try{
-        return await contract.getHouseBalance();
+        console.log("Transactionhistory: ", result.transfers);
+        return  result.transfers;
     }
-    catch(Error){
-        console.log("Could not get housedebt eth!", Error);
-    }
-}
-
-export async function getHouseDebtsEURC(){
-    console.log("Get housedebt eurc!");
-    try{
-        return await contract.getHouseBalance();
-    }
-    catch(Error){
-        console.log("Could not get housedebt eurc!", Error);
+    catch(error){
+        console.log("Could not get contract transactions", error);
     }
 }

@@ -1,22 +1,39 @@
 import { ethers } from "ethers";
 import { getContract } from "./ethereum";
 
+const contract = getContract();
+
 export async function addWhitelistAddresses(address) {
   console.log("try to call addAddresses", address);
-  const contract = getContract();
-  const validAddress = ethers.getAddress(address);
-  return contract.addAddress(validAddress);
+  try{ 
+    const validAddress = ethers.getAddress(address);
+    return await contract.addAddress(validAddress);
+  }
+  catch(error){
+    console.log("Could not add to whitelist! ", error);
+  }
 }
 
 export async function deleteWhitelistAddresses(address) {
   console.log("try to call deleteAddresses", address);
-  const contract = getContract();
-  const validAddress = ethers.getAddress(address);
-  return contract.deleteAddress(validAddress);
+  try{
+    const validAddress = ethers.getAddress(address);
+    return await contract.deleteAddress(validAddress);
+  }
+  catch(error){
+    console.log("Could not delete member from whitelist! ", error);
+  }
+  
 }
 
 export async function getWhitelist(){
     console.log("Get Whiteliste!");
-    const contract = getContract();
-    return contract.getWhitelistList();
+    try{
+      const contract = getContract();
+      return await contract.getWhitelistList();
+    }
+    catch(error){
+      console.log("Could not get Whitelist ", error);
+    }
+    
 }

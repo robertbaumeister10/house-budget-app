@@ -12,6 +12,7 @@ async function getEurc() {
 
 
 export async function approveEURCTransfer(amount){
+    console.log("approve EURC Transfer ", amount);
     try{
         const eurc = await getEurc();
         await eurc.approve(contractAddress, amount);
@@ -22,6 +23,7 @@ export async function approveEURCTransfer(amount){
 }
 
 export async function sendEURCtoContract(amount){
+    console.log("send EURC to Contract ", amount)
     if(await approveEURCTransfer(amount)){
         try{
             await contract.receiveEURCtoContract(amount);
@@ -37,6 +39,7 @@ export async function sendEURCtoContract(amount){
 }
 
 export async function sendETHtoContract(amount){
+    console.log("send ETH to Contract ", amount)
     try{
         await contract.receive({ value: amount });
     }
@@ -46,8 +49,10 @@ export async function sendETHtoContract(amount){
 }
 
 export async function payEURCtoAddress(payer, amount){
+    console.log("Pay EURC to Address ", payer , amount)
+    const validAddress = ethers.getAddress(payer);
     try{
-        await contract.payEURCtoAddress(payer, amount);
+        await contract.payEURCtoAddress(validAddress, amount);
     }
     catch(Error){
         console.log("Could not send EURC to address!", Error);
@@ -55,8 +60,10 @@ export async function payEURCtoAddress(payer, amount){
 }
 
 export async function payETHtoAddress(payer, amount){
+    console.log("Pay EURC to Address ", payer , amount)
+    const validAddress = ethers.getAddress(payer);
     try{
-        await contract.payment(payer, amount);
+        await contract.payment(validAddress, amount);
     }
     catch(Error){
         console.log("Could not send EURC to address!", Error);
