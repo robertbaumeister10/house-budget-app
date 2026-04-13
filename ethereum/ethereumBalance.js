@@ -7,7 +7,7 @@ const contractAddress = "0x123";
 export async function getFinancialOverview(){
     console.log("Get financial overview!");
     try{
-        return await contract.getContractFinacialOverview();
+        return await contract.getContractFinancialOverview();
     }
     catch(error){
         console.log("Could not get financial overview! ", error);

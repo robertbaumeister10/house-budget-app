@@ -15,7 +15,7 @@ export async function approveEURCTransfer(amount){
     console.log("approve EURC Transfer ", amount);
     try{
         const eurc = await getEurc();
-        await eurc.approve(contractAddress, amount);
+        return await eurc.approve(contractAddress, amount);
     }
     catch(Error){
         console.log("EURC approval failed!", Error);

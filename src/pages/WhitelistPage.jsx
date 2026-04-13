@@ -14,7 +14,6 @@ import { LuPlus, LuTrash2, LuClipboardList, LuWallet, LuUserRound } from "react-
 
 function WhitelistPage() {
   const [addressToAdd, setAddressToAdd] = useState("");
-  const [addressToDelete, setAddressToDelete] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [whitelist, setWhitelist] = useState([]);
 
@@ -24,6 +23,7 @@ function WhitelistPage() {
         // Temporär Mock-Daten, da Backend noch nicht verbunden
         const combined = [{ name: "Hans", address: "0x123" }];
         setWhitelist(combined);
+        await getWhitelist();
       } catch (error) {
         setStatusMessage("Fehler beim Laden der Whitelist: " + error.message);
       }

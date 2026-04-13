@@ -45,12 +45,12 @@ async function switchNetwork(provider, signer){
     const network = await provider.getNetwork();
     const balance = await provider.getBalance(address);
 
-    console.log("✅ Wallet verbunden!");
-    console.log("🧾 Wallet address:", address);
-    console.log("🌐 Network:", network.name);
-    console.log("🔢 ChainId:", network.chainId);
-    console.log("💰 Balance (wei):", balance.toString());
-    console.log("💰 Balance (ETH):", ethers.formatEther(balance));
+    console.log("Wallet verbunden!");
+    console.log("Wallet address:", address);
+    console.log("Network:", network.name);
+    console.log("ChainId:", network.chainId);
+    console.log("Balance (wei):", balance.toString());
+    console.log("Balance (ETH):", ethers.formatEther(balance));
 }
 
 

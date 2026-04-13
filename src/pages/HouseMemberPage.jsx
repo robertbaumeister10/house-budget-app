@@ -11,7 +11,7 @@ import {
 import PageIntro from "../components/PageIntro";
 import { useState, useEffect } from "react";
 import { LuPlus, LuTrash2, LuUserRound, LuWallet, LuTrendingUp, LuTrendingDown, LuPersonStanding, LuActivity, LuUserX } from "react-icons/lu";
-import { addHouseMember, deleteHouseMember, getAllHouseMembers } from "../../ethereum/ethereumMembers";
+import { addHouseMember, deleteHouseMember, getAllHouseMembers, activateHouseMembers, deactivateHouseMembers } from "../../ethereum/ethereumMembers";
 
 
 function HouseMemberPage() {
@@ -45,7 +45,7 @@ function HouseMemberPage() {
 
   async function deactivateUser(member){
     try{
-      await deactivateUser(member);
+      await deactivateHouseMembers(member);
     }
 
     catch(error){
@@ -56,7 +56,7 @@ function HouseMemberPage() {
 
   async function activateUser(member){
     try{
-      await activateUser(member);
+      await activateHouseMembers(member);
     }
 
     catch(error){
