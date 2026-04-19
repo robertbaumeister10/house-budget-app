@@ -12,6 +12,7 @@ import PageIntro from "../components/PageIntro";
 import { useState, useEffect } from "react";
 import { LuPlus, LuTrash2, LuUserRound, LuWallet, LuTrendingUp, LuTrendingDown, LuPersonStanding, LuActivity, LuUserX } from "react-icons/lu";
 import { addHouseMember, deleteHouseMember, getAllHouseMembers, activateHouseMembers, deactivateHouseMembers } from "../../ethereum/ethereumMembers";
+import { ethers } from "ethers";
 
 
 function HouseMemberPage() {
@@ -19,33 +20,12 @@ function HouseMemberPage() {
   const [newAddress, setNewAddress] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [memberActivationState, setMemberActivationState] = useState({});
-  const [members] = useState([
-    {
-      id: 1,
-      name: "Anna",
-      address: "0x8ba1f109551bd432803012645ac136ddd64dba72",
-      balance: "1.5 ETH",
-      schulden: "0.2 ETH",
-    },
-    {
-      id: 2,
-      name: "Max",
-      address: "0xa0ee7a142d267c1f36714e4a8f75612f20a79720",
-      balance: "0.8 ETH",
-      schulden: "0.0 ETH",
-    },
-    {
-      id: 3,
-      name: "Lea",
-      address: "0x742d35cc6634c0532925a3b844bc454e4438f44e",
-      balance: "2.1 ETH",
-      schulden: "0.6 ETH",
-    },
-  ]);
+  const [members, setMembers] = useState([]);
 
-  async function deactivateUser(member){
+  async function deactivateUser(memberAddress){
     try{
-      await deactivateHouseMembers(member);
+      await deactivateHouseMembers(memberAddress);
+      setStatusMessage("User deactivated!");
     }
 
     catch(error){
@@ -54,9 +34,10 @@ function HouseMemberPage() {
     console.log("User deactivated!");
   }
 
-  async function activateUser(member){
+  async function activateUser(memberAddress){
     try{
-      await activateHouseMembers(member);
+      await activateHouseMembers(memberAddress);
+      setStatusMessage("User activated!");
     }
 
     catch(error){
@@ -68,7 +49,24 @@ function HouseMemberPage() {
   useEffect(() => {
       const loadMemberList = async () => {
         try {
-          await getAllHouseMembers();
+          const memberData = await getAllHouseMembers();
+          if (memberData) {
+            const formattedMembers = memberData.map((member, index) => ({
+              id: index + 1,
+              name: member.memberName,
+              address: member.memberAddress,
+              balance: `${parseFloat(ethers.formatEther(member.memberBalance)).toFixed(2)} ETH`,
+              schulden: `${parseFloat(ethers.formatEther(member.memberDebt)).toFixed(2)} ETH`,
+              isActive: member.isActive,
+            }));
+            setMembers(formattedMembers);
+            // Set activation state
+            const activationState = {};
+            formattedMembers.forEach(member => {
+              activationState[member.id] = member.isActive;
+            });
+            setMemberActivationState(activationState);
+          }
         } catch (error) {
           setStatusMessage("Fehler beim Laden der Memberlist: " + error.message);
         }
@@ -126,7 +124,7 @@ function HouseMemberPage() {
               <LuPersonStanding size={18} />
             </Flex>
             <Box>
-              <Text fontWeight="700" color="#0F172A" fontSize="sm">Aktive Members</Text>
+              <Text fontWeight="700" color="#0F172A" fontSize="sm">Members</Text>
               <Text fontSize="xs" color="#94A3B8">{members.length} member</Text>
             </Box>
           </Flex>
@@ -162,7 +160,7 @@ function HouseMemberPage() {
                     <Stack gap={0} flex="1" minW={0}>
                       <Flex align="center" gap={2}>
                         <Text fontWeight="700" color="#0F172A" fontSize="sm">{member.name}</Text>
-                        <Text fontSize="xs" color="#16A34A" fontWeight="600">● Aktiv</Text>
+                        <Text fontSize="xs" color={member.isActive ? "#16A34A" : "#B91C1C"} fontWeight="600">● {member.isActive ? "Aktiv" : "Inaktiv"}</Text>
                       </Flex>
                       <HStack gap={3} flexWrap="wrap">
                         <HStack gap={1}>
@@ -194,10 +192,10 @@ function HouseMemberPage() {
                     onClick={async () => {
                         if (isUserActivated) {
                           setMemberActivationState((prev) => ({ ...prev, [member.id]: false }));
-                          activateUser();
+                          await deactivateUser(member.address);
                         } else {
                           setMemberActivationState((prev) => ({ ...prev, [member.id]: true }));
-                          deactivateUser();
+                          await activateUser(member.address);
                         }
                     }}
                     flexShrink={0}

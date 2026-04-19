@@ -1,13 +1,15 @@
-import { getContract } from "./ethereum";
+import { getContract, CONTRACT_ADDRESS } from "./ethereum";
 import { Alchemy, Network } from "alchemy-sdk";
 
 const contract = getContract();
-const contractAddress = "0x123";
+const contractAddress = CONTRACT_ADDRESS;
 
 export async function getFinancialOverview(){
     console.log("Get financial overview!");
     try{
-        return await contract.getContractFinancialOverview();
+        const result = await contract.getContractFinacialOverview();
+        console.log("Financial Overview Result!", result);
+        return result;
     }
     catch(error){
         console.log("Could not get financial overview! ", error);
@@ -16,9 +18,14 @@ export async function getFinancialOverview(){
 
 export async function getTransactionHistory(){
     console.log("Get Contract Transactionhistory!");
+    const apiKey = import.meta.env.VITE_ALCHEMY_API_KEY;
+    if (!apiKey || apiKey === "demo") {
+        console.log("Alchemy API Key not set or is demo. Skipping transaction history.");
+        return [];
+    }
     try{
         const config = {
-        apiKey: import.meta.env.VITE_ALCHEMY_API_KEY,
+        apiKey: apiKey,
         network: Network.ETH_SEPOLIA,
         };
         const alchemy = new Alchemy(config);
@@ -32,5 +39,6 @@ export async function getTransactionHistory(){
     }
     catch(error){
         console.log("Could not get contract transactions", error);
+        return [];
     }
 }

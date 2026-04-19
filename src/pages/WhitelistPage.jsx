@@ -23,7 +23,8 @@ function WhitelistPage() {
         // Temporär Mock-Daten, da Backend noch nicht verbunden
         const combined = [{ name: "Hans", address: "0x123" }];
         setWhitelist(combined);
-        await getWhitelist();
+        const whitelist = await getWhitelist();
+        console.log("Whitelist: ", whitelist);
       } catch (error) {
         setStatusMessage("Fehler beim Laden der Whitelist: " + error.message);
       }

@@ -1,7 +1,10 @@
 import { ethers } from "ethers";
+import HouseBudgetJSON from '../artifacts/HouseBudget.sol/HouseBudget.json';
 
 const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const PRIVATE_KEY = (import.meta.env.VITE_PRIVATE_KEY || "").trim();
+
+export { CONTRACT_ADDRESS };
 
 // function assertValidPrivateKey(privateKey) {
 //   if (!privateKey) {
@@ -56,14 +59,14 @@ async function switchNetwork(provider, signer){
 
 export function getContract() {
   // assertValidPrivateKey(PRIVATE_KEY);
-  // const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
-  // const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
-  // return new ethers.Contract(CONTRACT_ADDRESS, TestContractJSON.abi, wallet);
+  const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+  return new ethers.Contract(CONTRACT_ADDRESS, HouseBudgetJSON.abi, wallet);
 }
 
 export async function ping() {
     const contract = getContract();
-    await contract.pingTest();
+    return await contract.pingContract();
 }
 
 export async function getETHPrice() {

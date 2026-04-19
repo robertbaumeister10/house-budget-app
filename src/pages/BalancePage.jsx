@@ -16,47 +16,11 @@ import {
   LuCircleAlert,
   LuCoins,
 } from "react-icons/lu";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getFinancialOverview, getTransactionHistory } from "../../ethereum/ethereumBalance";
+import { getAllHouseMembers } from "../../ethereum/ethereumMembers";
 
-const houseSummary = [
-  {
-    title: "House Balance",
-    currency: "ETH",
-    value: 842.5,
-    accent: "#7C3AED",
-    accentLight: "#EDE9FE",
-    icon: LuCoins,
-    type: "balance",
-  },
-  {
-    title: "Offene Schulden",
-    currency: "ETH",
-    value: 192.3,
-    accent: "#7C3AED",
-    accentLight: "#EDE9FE",
-    icon: LuCircleAlert,
-    type: "debt",
-  },
-  {
-    title: "House Balance",
-    currency: "EURC",
-    value: 842.5,
-    accent: "#2563EB",
-    accentLight: "#DBEAFE",
-    icon: LuBanknote,
-    type: "balance",
-  },
-  {
-    title: "Offene Schulden",
-    currency: "EURC",
-    value: 192.3,
-    accent: "#2563EB",
-    accentLight: "#DBEAFE",
-    icon: LuCircleAlert,
-    type: "debt",
-  },
-];
+import { ethers } from "ethers";
 
 const formatCurrency = (amount) =>
   new Intl.NumberFormat("de-DE", {
@@ -64,93 +28,96 @@ const formatCurrency = (amount) =>
     currency: "EUR",
   }).format(amount);
 
-const memberBalances = [
-  {
-    name: "Anna",
-    address: "0x8ba1f109551bd432803012645ac136ddd64dba72",
-    eth: 126.5,
-    eurc: 85.3,
-  },
-  {
-    name: "Max",
-    address: "0xa0ee7a142d267c1f36714e4a8f75612f20a79720",
-    eth: -74.2,
-    eurc: -45.1,
-  },
-  {
-    name: "Lena",
-    address: "0x742d35cc6634c0532925a3b844bc454e4438f44e",
-    eth: 18.9,
-    eurc: 32.8,
-  },
-  {
-    name: "Tom",
-    address: "0x123456789abcdef123456789abcdef123456789",
-    eth: -71.2,
-    eurc: -73.0,
-  },
-];
-
-const transactions = [
-  {
-    id: 1,
-    timestamp: "2026-04-05 14:32",
-    from: "Anna",
-    amount: 50.5,
-    to: "Max",
-    currency: "ETH",
-  },
-  {
-    id: 2,
-    timestamp: "2026-04-05 13:15",
-    from: "Tom",
-    amount: 100.0,
-    to: "Contract",
-    currency: "EURC",
-  },
-  {
-    id: 3,
-    timestamp: "2026-04-05 12:45",
-    from: "Lena",
-    amount: 25.3,
-    to: "Anna",
-    currency: "ETH",
-  },
-  {
-    id: 4,
-    timestamp: "2026-04-05 11:20",
-    from: "Max",
-    amount: 75.8,
-    to: "Contract",
-    currency: "EURC",
-  },
-  {
-    id: 5,
-    timestamp: "2026-04-05 10:05",
-    from: "Anna",
-    amount: 45.2,
-    to: "Tom",
-    currency: "ETH",
-  },
-];
-
 function BalancePage() {
+  const [houseSummary, setHouseSummary] = useState([]);
+  const [memberBalances, setMemberBalances] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+
   useEffect(() => {
-    const loadFinanceOverview = async () => {
+    const loadData = async () => {
+      // Financial Overview
       try {
-        await getFinancialOverview();
+        const overview = await getFinancialOverview();
+        if (overview && overview.length === 4) {
+          const [balanceETH, debtETH, balanceEURC, debtEURC] = overview;
+          const summary = [
+            {
+              title: "House Balance",
+              currency: "ETH",
+              value: parseFloat(ethers.formatEther(balanceETH)),
+              accent: "#7C3AED",
+              accentLight: "#EDE9FE",
+              icon: LuCoins,
+              type: "balance",
+            },
+            {
+              title: "Offene Schulden",
+              currency: "ETH",
+              value: parseFloat(ethers.formatEther(debtETH)),
+              accent: "#7C3AED",
+              accentLight: "#EDE9FE",
+              icon: LuCircleAlert,
+              type: "debt",
+            },
+            {
+              title: "House Balance",
+              currency: "EURC",
+              value: parseFloat(ethers.formatEther(balanceEURC)),
+              accent: "#2563EB",
+              accentLight: "#DBEAFE",
+              icon: LuBanknote,
+              type: "balance",
+            },
+            {
+              title: "Offene Schulden",
+              currency: "EURC",
+              value: parseFloat(ethers.formatEther(debtEURC)),
+              accent: "#2563EB",
+              accentLight: "#DBEAFE",
+              icon: LuCircleAlert,
+              type: "debt",
+            },
+          ];
+          setHouseSummary(summary);
+        }
       } catch(error) {
-        console.log("Could not get House Debts EURC:", error);
+        console.log("Could not get financial overview:", error);
       }
 
       try {
-        await getTransactionHistory();
+        const members = await getAllHouseMembers();
+        if (members) {
+          const formattedMembers = members.map(member => ({
+            name: member.memberName,
+            address: member.memberAddress,
+            eth: parseFloat(ethers.formatEther(member.memberBalance)),
+            eurc: parseFloat(ethers.formatEther(member.memberEURCBalance)),
+          }));
+          setMemberBalances(formattedMembers);
+        }
       } catch(error) {
-        console.log("Could not get House Debts EURC:", error);
+        console.log("Could not get house members:", error);
+      }
+
+      try {
+        const txHistory = await getTransactionHistory();
+        if (txHistory) {
+          const formattedTx = txHistory.map((tx, index) => ({
+            id: index + 1,
+            timestamp: tx.blockTimestamp ? new Date(tx.blockTimestamp).toLocaleString() : 'Unknown',
+            from: tx.from,
+            to: tx.to,
+            amount: parseFloat(ethers.formatEther(tx.value || 0)),
+            currency: tx.asset === 'ETH' ? 'ETH' : (tx.asset === 'EURC' ? 'EURC' : 'UNKNOWN'),
+          }));
+          setTransactions(formattedTx);
+        }
+      } catch(error) {
+        console.log("Could not get transaction history:", error);
       }
     };
     
-    loadFinanceOverview();
+    loadData();
   }, []);
   return (
     <Stack gap={8} px={{ base: 4, md: 6 }} pb={{ base: 4, md: 6 }} pt={{ base: 1, md: 2 }}>

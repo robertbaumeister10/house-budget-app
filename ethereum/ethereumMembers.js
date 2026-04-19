@@ -41,7 +41,7 @@ export async function activateHouseMembers(memberAddress){
     console.log("try to activate housemembers!");
     try{
         const validAddress = ethers.getAddress(memberAddress);
-        return await contract.activateHouseMembers(validAddress);
+        return await contract.activateHouseMember(validAddress);
     }
     catch(Error){
         console.log("Could not activate Housemembers!", Error);
@@ -52,7 +52,7 @@ export async function deactivateHouseMembers(memberAddress){
     console.log("try to deactivate housemembers!");
     try{
         const validAddress = ethers.getAddress(memberAddress);
-        return await contract.deactivateHouseMembers(validAddress);
+        return await contract.deactivateHouseMember(validAddress);
     }
     catch(Error){
         console.log("Could deactivate Housemembers!", Error);
