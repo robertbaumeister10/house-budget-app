@@ -20,11 +20,15 @@ function WhitelistPage() {
   useEffect(() => {
     const loadWhitelist = async () => {
       try {
-        // Temporär Mock-Daten, da Backend noch nicht verbunden
-        const combined = [{ name: "Hans", address: "0x123" }];
-        setWhitelist(combined);
         const whitelist = await getWhitelist();
         console.log("Whitelist: ", whitelist);
+        const [addresses, names] = whitelist;
+        const combined = addresses.map((addr, i) => ({
+        address: addr,
+        name: names[i]
+      }));
+
+      setWhitelist(combined);
       } catch (error) {
         setStatusMessage("Fehler beim Laden der Whitelist: " + error.message);
       }

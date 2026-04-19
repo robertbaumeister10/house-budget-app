@@ -10,10 +10,25 @@ import {
 } from "@chakra-ui/react";
 import PageIntro from "../components/PageIntro";
 import { useState, useEffect } from "react";
-import { LuPlus, LuTrash2, LuUserRound, LuWallet, LuTrendingUp, LuTrendingDown, LuPersonStanding, LuActivity, LuUserX } from "react-icons/lu";
-import { addHouseMember, deleteHouseMember, getAllHouseMembers, activateHouseMembers, deactivateHouseMembers } from "../../ethereum/ethereumMembers";
+import {
+  LuPlus,
+  LuTrash2,
+  LuUserRound,
+  LuWallet,
+  LuTrendingUp,
+  LuTrendingDown,
+  LuPersonStanding,
+  LuActivity,
+  LuUserX,
+} from "react-icons/lu";
+import {
+  addHouseMember,
+  deleteHouseMember,
+  getAllHouseMembers,
+  activateHouseMembers,
+  deactivateHouseMembers,
+} from "../../ethereum/ethereumMembers";
 import { ethers } from "ethers";
-
 
 function HouseMemberPage() {
   const [newName, setNewName] = useState("");
@@ -22,82 +37,120 @@ function HouseMemberPage() {
   const [memberActivationState, setMemberActivationState] = useState({});
   const [members, setMembers] = useState([]);
 
-  async function deactivateUser(memberAddress){
-    try{
-      await deactivateHouseMembers(memberAddress);
-      setStatusMessage("User deactivated!");
-    }
+  const showTemporaryStatus = (message) => {
+    setStatusMessage(message);
 
-    catch(error){
-      setStatusMessage(error.message || "Could not deactivate user!");
+    setTimeout(() => {
+      setStatusMessage("");
+    }, 3000);
+  };
+
+  const loadMemberList = async () => {
+    try {
+      const memberData = await getAllHouseMembers();
+
+      if (memberData) {
+        const formattedMembers = memberData.map((member, index) => ({
+          id: index + 1,
+          name: member.memberName,
+          address: member.memberAddress,
+          balance: `${parseFloat(
+            ethers.formatEther(member.memberBalance)
+          ).toFixed(2)} ETH`,
+          schulden: `${parseFloat(
+            ethers.formatEther(member.memberDebt)
+          ).toFixed(2)} ETH`,
+          isActive: member.isActive,
+        }));
+
+        setMembers(formattedMembers);
+
+        const activationState = {};
+        formattedMembers.forEach((member) => {
+          activationState[member.id] = member.isActive;
+        });
+
+        setMemberActivationState(activationState);
+      }
+    } catch (error) {
+      setStatusMessage(
+        "Fehler beim Laden der Memberlist: " + error.message
+      );
     }
-    console.log("User deactivated!");
+  };
+
+  async function deactivateUser(memberAddress) {
+    try {
+      await deactivateHouseMembers(memberAddress);
+      showTemporaryStatus("User deactivated!");
+      await loadMemberList();
+    } catch (error) {
+      setStatusMessage(
+        error.message || "Could not deactivate user!"
+      );
+    }
   }
 
-  async function activateUser(memberAddress){
-    try{
+  async function activateUser(memberAddress) {
+    try {
       await activateHouseMembers(memberAddress);
-      setStatusMessage("User activated!");
+      showTemporaryStatus("User activated!");
+      await loadMemberList();
+    } catch (error) {
+      setStatusMessage(
+        error.message || "Could not activate user!"
+      );
     }
-
-    catch(error){
-      setStatusMessage(error.message || "Could not activate user!");
-    }
-    console.log("User activated!");
   }
 
   useEffect(() => {
-      const loadMemberList = async () => {
-        try {
-          const memberData = await getAllHouseMembers();
-          if (memberData) {
-            const formattedMembers = memberData.map((member, index) => ({
-              id: index + 1,
-              name: member.memberName,
-              address: member.memberAddress,
-              balance: `${parseFloat(ethers.formatEther(member.memberBalance)).toFixed(2)} ETH`,
-              schulden: `${parseFloat(ethers.formatEther(member.memberDebt)).toFixed(2)} ETH`,
-              isActive: member.isActive,
-            }));
-            setMembers(formattedMembers);
-            // Set activation state
-            const activationState = {};
-            formattedMembers.forEach(member => {
-              activationState[member.id] = member.isActive;
-            });
-            setMemberActivationState(activationState);
-          }
-        } catch (error) {
-          setStatusMessage("Fehler beim Laden der Memberlist: " + error.message);
-        }
-      };
-      loadMemberList();
+    loadMemberList();
   }, []);
 
   const addMember = async (memberName, memberAddress) => {
-    try{
-          console.log("Member added!");
-          await addHouseMember(memberName, memberAddress);
-        }
-    
-        catch(error){
-          setStatusMessage(error.message || "Hinzufügen konnte nicht ausgeführt werden.");
-        }
+    try {
+      await addHouseMember(memberName, memberAddress);
 
+      setNewName("");
+      setNewAddress("");
+
+      showTemporaryStatus(
+        "Member erfolgreich hinzugefügt."
+      );
+
+      await loadMemberList();
+    } catch (error) {
+      setStatusMessage(
+        error.message ||
+          "Hinzufügen konnte nicht ausgeführt werden."
+      );
+    }
   };
 
   const removeMember = async (memberAddress) => {
-    try{
-          console.log("Member deleted!");
-          await deleteHouseMember(memberAddress);
-        } 
-        catch(error){
-          setStatusMessage(error.message || "Löschen konnte nicht ausgeführt werden.");
-        }
+    try {
+      await deleteHouseMember(memberAddress);
+
+      showTemporaryStatus(
+        "Member erfolgreich gelöscht."
+      );
+
+      await loadMemberList();
+    } catch (error) {
+      setStatusMessage(
+        error.message ||
+          "Löschen konnte nicht ausgeführt werden."
+      );
+    }
   };
 
   return (
-    <Stack gap={5} px={{ base: 4, md: 6 }} pb={{ base: 4, md: 6 }} pt={{ base: 1, md: 2 }}>
+    <Stack
+      gap={5}
+      px={{ base: 4, md: 6 }}
+      pb={{ base: 4, md: 6 }}
+      pt={{ base: 1, md: 2 }}
+    >
       <PageIntro title="Members" />
 
       <Stack width="full" align="center" gap={4}>
@@ -123,109 +176,208 @@ function HouseMemberPage() {
             >
               <LuPersonStanding size={18} />
             </Flex>
+
             <Box>
-              <Text fontWeight="700" color="#0F172A" fontSize="sm">Members</Text>
-              <Text fontSize="xs" color="#94A3B8">{members.length} member</Text>
+              <Text
+                fontWeight="700"
+                color="#0F172A"
+                fontSize="sm"
+              >
+                Members
+              </Text>
+              <Text fontSize="xs" color="#94A3B8">
+                {members.length} member
+              </Text>
             </Box>
           </Flex>
 
           <Stack gap={3}>
             {members.map((member) => {
-              const isUserActivated = Boolean(memberActivationState[member.id]);
+              const isUserActivated = Boolean(
+                memberActivationState[member.id]
+              );
 
               return (
-              <Box
-                key={member.id}
-                border="1px solid"
-                borderColor="#E2E8F0"
-                borderRadius="xl"
-                px={4}
-                py={3}
-              >
-                <Flex justify="space-between" align="center" gap={3}>
-                  <HStack gap={3} flex="1" minW={0}>
-                    <Flex
-                      w="38px"
-                      h="38px"
-                      borderRadius="full"
-                      align="center"
-                      justify="center"
-                      bg="#EFF6FF"
-                      color="#1D4ED8"
+                <Box
+                  key={member.id}
+                  border="1px solid"
+                  borderColor="#E2E8F0"
+                  borderRadius="xl"
+                  px={4}
+                  py={3}
+                >
+                  <Flex
+                    justify="space-between"
+                    align="center"
+                    gap={3}
+                  >
+                    <HStack gap={3} flex="1" minW={0}>
+                      <Flex
+                        w="38px"
+                        h="38px"
+                        borderRadius="full"
+                        align="center"
+                        justify="center"
+                        bg="#EFF6FF"
+                        color="#1D4ED8"
+                        flexShrink={0}
+                      >
+                        <LuUserRound size={17} />
+                      </Flex>
+
+                      <Stack gap={0} flex="1" minW={0}>
+                        <Flex align="center" gap={2}>
+                          <Text
+                            fontWeight="700"
+                            color="#0F172A"
+                            fontSize="sm"
+                          >
+                            {member.name}
+                          </Text>
+
+                          <Text
+                            fontSize="xs"
+                            color={
+                              member.isActive
+                                ? "#16A34A"
+                                : "#B91C1C"
+                            }
+                            fontWeight="600"
+                          >
+                            ●{" "}
+                            {member.isActive
+                              ? "Aktiv"
+                              : "Inaktiv"}
+                          </Text>
+                        </Flex>
+
+                        <HStack gap={3} flexWrap="wrap">
+                          <HStack gap={1}>
+                            <LuWallet
+                              size={11}
+                              color="#94A3B8"
+                            />
+                            <Text
+                              fontSize="xs"
+                              color="#94A3B8"
+                            >
+                              {member.address}
+                            </Text>
+                          </HStack>
+
+                          <HStack gap={1}>
+                            <LuTrendingUp
+                              size={11}
+                              color="#16A34A"
+                            />
+                            <Text
+                              fontSize="xs"
+                              color="#16A34A"
+                            >
+                              {member.balance}
+                            </Text>
+                          </HStack>
+
+                          <HStack gap={1}>
+                            <LuTrendingDown
+                              size={11}
+                              color="#B91C1C"
+                            />
+                            <Text
+                              fontSize="xs"
+                              color="#B91C1C"
+                            >
+                              {member.schulden}
+                            </Text>
+                          </HStack>
+                        </HStack>
+                      </Stack>
+                    </HStack>
+
+                    <Button
+                      variant="outline"
+                      color={
+                        isUserActivated
+                          ? "#166534"
+                          : "#B91C1C"
+                      }
+                      borderColor={
+                        isUserActivated
+                          ? "#BBF7D0"
+                          : "#FECACA"
+                      }
+                      bg={
+                        isUserActivated
+                          ? "#F0FDF4"
+                          : "#FEF2F2"
+                      }
+                      size="sm"
+                      title="Nutzer aktivieren bzw. deaktivieren"
+                      _hover={
+                        isUserActivated
+                          ? {
+                              bg: "#DCFCE7",
+                              borderColor: "#86EFAC",
+                            }
+                          : {
+                              bg: "#FEE2E2",
+                              borderColor: "#FCA5A5",
+                            }
+                      }
+                      onClick={async () => {
+                        if (isUserActivated) {
+                          setMemberActivationState(
+                            (prev) => ({
+                              ...prev,
+                              [member.id]: false,
+                            })
+                          );
+
+                          await deactivateUser(
+                            member.address
+                          );
+                        } else {
+                          setMemberActivationState(
+                            (prev) => ({
+                              ...prev,
+                              [member.id]: true,
+                            })
+                          );
+
+                          await activateUser(
+                            member.address
+                          );
+                        }
+                      }}
                       flexShrink={0}
                     >
-                      <LuUserRound size={17} />
-                    </Flex>
-
-                    <Stack gap={0} flex="1" minW={0}>
-                      <Flex align="center" gap={2}>
-                        <Text fontWeight="700" color="#0F172A" fontSize="sm">{member.name}</Text>
-                        <Text fontSize="xs" color={member.isActive ? "#16A34A" : "#B91C1C"} fontWeight="600">● {member.isActive ? "Aktiv" : "Inaktiv"}</Text>
-                      </Flex>
-                      <HStack gap={3} flexWrap="wrap">
-                        <HStack gap={1}>
-                          <LuWallet size={11} color="#94A3B8" />
-                          <Text fontSize="xs" color="#94A3B8">{member.address}</Text>
-                        </HStack>
-                        <HStack gap={1}>
-                          <LuTrendingUp size={11} color="#16A34A" />
-                          <Text fontSize="xs" color="#16A34A">{member.balance}</Text>
-                        </HStack>
-                        <HStack gap={1}>
-                          <LuTrendingDown size={11} color="#B91C1C" />
-                          <Text fontSize="xs" color="#B91C1C">{member.schulden}</Text>
-                        </HStack>
-                      </HStack>
-                    </Stack>
-                  </HStack>
-
-                  <Button
-                    variant="outline"
-                    color={isUserActivated ? "#166534" : "#B91C1C"}
-                    borderColor={isUserActivated ? "#BBF7D0" : "#FECACA"}
-                    bg={isUserActivated ? "#F0FDF4" : "#FEF2F2"}
-                    size="sm"
-                    title="Nutzer aktivieren bzw. deaktivieren"
-                    _hover={isUserActivated
-                      ? { bg: "#DCFCE7", borderColor: "#86EFAC" }
-                      : { bg: "#FEE2E2", borderColor: "#FCA5A5" }}
-                    onClick={async () => {
-                        if (isUserActivated) {
-                          setMemberActivationState((prev) => ({ ...prev, [member.id]: false }));
-                          await deactivateUser(member.address);
-                        } else {
-                          setMemberActivationState((prev) => ({ ...prev, [member.id]: true }));
-                          await activateUser(member.address);
-                        }
-                    }}
-                    flexShrink={0}
-                  >
-                    {isUserActivated ? (
-                      <>
+                      {isUserActivated ? (
                         <LuActivity />
-                      </>
-                    ) : (
-                      <>
+                      ) : (
                         <LuUserX />
-                      </>
-                    )}
-                  </Button>
+                      )}
+                    </Button>
 
-                  <Button
-                    variant="outline"
-                    color="#B91C1C"
-                    borderColor="#FECACA"
-                    bg="#FEF2F2"
-                    size="sm"
-                    title="Nutzer löschen"
-                    _hover={{ bg: "#FEE2E2", borderColor: "#FCA5A5" }}
-                    onClick={() => removeMember(member)}
-                    flexShrink={0}
-                  >
-                    <LuTrash2 />
-                  </Button>
-                </Flex>
-              </Box>
+                    <Button
+                      variant="outline"
+                      color="#B91C1C"
+                      borderColor="#FECACA"
+                      bg="#FEF2F2"
+                      size="sm"
+                      title="Nutzer löschen"
+                      _hover={{
+                        bg: "#FEE2E2",
+                        borderColor: "#FCA5A5",
+                      }}
+                      onClick={() =>
+                        removeMember(member.address)
+                      }
+                      flexShrink={0}
+                    >
+                      <LuTrash2 />
+                    </Button>
+                  </Flex>
+                </Box>
               );
             })}
           </Stack>
@@ -253,32 +405,75 @@ function HouseMemberPage() {
             >
               <LuPlus size={18} />
             </Flex>
+
             <Box>
-              <Text fontWeight="700" color="#0F172A" fontSize="sm">Member hinzufügen</Text>
+              <Text
+                fontWeight="700"
+                color="#0F172A"
+                fontSize="sm"
+              >
+                Member hinzufügen
+              </Text>
             </Box>
           </Flex>
 
-          <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={3} mb={4}>
+          <Grid
+            templateColumns={{
+              base: "1fr",
+              md: "1fr 1fr",
+            }}
+            gap={3}
+            mb={4}
+          >
             <Stack gap={1.5}>
-              <Text fontSize="xs" fontWeight="600" color="#475569">Name</Text>
+              <Text
+                fontSize="xs"
+                fontWeight="600"
+                color="#475569"
+              >
+                Name
+              </Text>
+
               <Input
                 value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={(e) =>
+                  setNewName(e.target.value)
+                }
                 placeholder="z.B. Anna"
                 bg="#F8FAFC"
                 borderColor="#E2E8F0"
-                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
+                _focusVisible={{
+                  borderColor: "#60A5FA",
+                  boxShadow:
+                    "0 0 0 1px #60A5FA",
+                  bg: "white",
+                }}
               />
             </Stack>
+
             <Stack gap={1.5}>
-              <Text fontSize="xs" fontWeight="600" color="#475569">Walletadresse</Text>
+              <Text
+                fontSize="xs"
+                fontWeight="600"
+                color="#475569"
+              >
+                Walletadresse
+              </Text>
+
               <Input
                 value={newAddress}
-                onChange={(e) => setNewAddress(e.target.value)}
+                onChange={(e) =>
+                  setNewAddress(e.target.value)
+                }
                 placeholder="0x..."
                 bg="#F8FAFC"
                 borderColor="#E2E8F0"
-                _focusVisible={{ borderColor: "#60A5FA", boxShadow: "0 0 0 1px #60A5FA", bg: "white" }}
+                _focusVisible={{
+                  borderColor: "#60A5FA",
+                  boxShadow:
+                    "0 0 0 1px #60A5FA",
+                  bg: "white",
+                }}
               />
             </Stack>
           </Grid>
@@ -289,7 +484,9 @@ function HouseMemberPage() {
             fontWeight="600"
             width="full"
             _hover={{ bg: "#1D4ED8" }}
-            onClick={() => addMember(newName, newAddress)}
+            onClick={() =>
+              addMember(newName, newAddress)
+            }
           >
             <LuPlus />
             hinzufügen
@@ -305,7 +502,9 @@ function HouseMemberPage() {
           px={4}
           py={3}
         >
-          <Text color="#475569">{statusMessage || ""}</Text>
+          <Text color="#475569">
+            {statusMessage || ""}
+          </Text>
         </Box>
       </Stack>
     </Stack>

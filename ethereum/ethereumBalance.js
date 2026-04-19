@@ -7,7 +7,7 @@ const contractAddress = CONTRACT_ADDRESS;
 export async function getFinancialOverview(){
     console.log("Get financial overview!");
     try{
-        const result = await contract.getContractFinacialOverview();
+        const result = await contract.getContractFinancialOverview();
         console.log("Financial Overview Result!", result);
         return result;
     }

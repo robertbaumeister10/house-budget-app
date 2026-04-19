@@ -3,6 +3,14 @@ import { getContract } from "./ethereum";
 
 const contract = getContract();
 
+function isDeletedHouseMember(member) {
+    return (
+        !member ||
+        member.memberAddress === ethers.ZeroAddress ||
+        !member.memberName
+    );
+}
+
 export async function addHouseMember(memberName, memberAddress){
     console.log("try to add member!", memberAddress);
     try{
@@ -30,7 +38,8 @@ export async function deleteHouseMember(memberAddress){
 export async function getAllHouseMembers(){
     console.log("try to get all housemembers!");
     try{
-        return await contract.getAllHouseMembers();
+        const members = await contract.getAllHouseMembers();
+        return members.filter((member) => !isDeletedHouseMember(member));
     }
     catch(Error){
         console.log("Could not get all Housemembers!", Error);
