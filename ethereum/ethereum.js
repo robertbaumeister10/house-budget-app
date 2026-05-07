@@ -1,7 +1,14 @@
 import { ethers } from "ethers";
 import HouseBudgetJSON from '../artifacts/HouseBudget.sol/HouseBudget.json';
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const NETWORK_NAME = import.meta.env.VITE_NETWORK_NAME || "Hardhat Local";
+const RPC_URL = import.meta.env.VITE_RPC_URL || "http://127.0.0.1:8545";
+const CHAIN_ID = Number(import.meta.env.VITE_CHAIN_ID || "1337");
+const CHAIN_ID_HEX = `0x${CHAIN_ID.toString(16)}`;
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const NATIVE_CURRENCY_NAME = import.meta.env.VITE_NATIVE_CURRENCY_NAME || "ETH";
+const NATIVE_CURRENCY_SYMBOL = import.meta.env.VITE_NATIVE_CURRENCY_SYMBOL || "ETH";
+const NATIVE_CURRENCY_DECIMALS = Number(import.meta.env.VITE_NATIVE_CURRENCY_DECIMALS || "18");
 const PRIVATE_KEY = (import.meta.env.VITE_PRIVATE_KEY || "").trim();
 
 export { CONTRACT_ADDRESS };
@@ -23,8 +30,9 @@ export async function connectWallet(){
       throw new Error("MetaMask nicht installiert");
     }
     const provider = new ethers.BrowserProvider(window.ethereum);
+    await switchNetwork();
     const signer = await provider.getSigner();
-    await switchNetwork(provider, signer);
+    await logWalletState(provider, signer);
     return signer;
   }
   catch(error){
@@ -33,17 +41,38 @@ export async function connectWallet(){
   }
 }
 
-async function switchNetwork(provider, signer){
+async function switchNetwork(){
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0xaa36a7' }], // Sepolia
+        params: [{ chainId: CHAIN_ID_HEX }],
       });
     } catch (error) {
-      console.log("Could not switch to Sepolia Network!", error);
-    }
+      if (error.code === 4902) {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: CHAIN_ID_HEX,
+              chainName: NETWORK_NAME,
+              nativeCurrency: {
+                name: NATIVE_CURRENCY_NAME,
+                symbol: NATIVE_CURRENCY_SYMBOL,
+                decimals: NATIVE_CURRENCY_DECIMALS,
+              },
+              rpcUrls: [RPC_URL],
+            },
+          ],
+        });
+        return;
+      }
 
-    
+      console.log(`Could not switch to ${NETWORK_NAME}!`, error);
+      throw error;
+    }
+}
+
+async function logWalletState(provider, signer){
     const address = await signer.getAddress();
     const network = await provider.getNetwork();
     const balance = await provider.getBalance(address);
@@ -59,7 +88,7 @@ async function switchNetwork(provider, signer){
 
 export function getContract() {
   // assertValidPrivateKey(PRIVATE_KEY);
-  const provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+  const provider = new ethers.JsonRpcProvider(RPC_URL);
   const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
   return new ethers.Contract(CONTRACT_ADDRESS, HouseBudgetJSON.abi, wallet);
 }

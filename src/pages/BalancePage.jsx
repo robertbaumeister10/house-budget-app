@@ -1,11 +1,8 @@
 import {
   Badge,
   Box,
-  Button,
   Flex,
   Grid,
-  Heading,
-  HStack,
   SimpleGrid,
   Stack,
   Text,
@@ -17,16 +14,16 @@ import {
   LuCoins,
 } from "react-icons/lu";
 import { useEffect, useState } from "react";
-import { getFinancialOverview, getTransactionHistory } from "../../ethereum/ethereumBalance";
+import { getTransactionHistory } from "../../ethereum/ethereumBalance";
 import { getAllHouseMembers } from "../../ethereum/ethereumMembers";
 
 import { ethers } from "ethers";
 
-const formatCurrency = (amount) =>
-  new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
+const formatTokenAmount = (amount, currency) =>
+  `${new Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(amount)} ${currency}`;
 
 function BalancePage() {
   const [houseSummary, setHouseSummary] = useState([]);
@@ -35,63 +32,72 @@ function BalancePage() {
 
   useEffect(() => {
     const loadData = async () => {
-      // Financial Overview
       try {
-        const overview = await getFinancialOverview();
-        if (overview && overview.length === 4) {
-          const [balanceETH, debtETH, balanceEURC, debtEURC] = overview;
-          const summary = [
+        const members = await getAllHouseMembers();
+        if (members) {
+          const totals = members.reduce((accumulator, member) => {
+            accumulator.balanceETH += parseFloat(ethers.formatEther(member.memberBalance));
+            accumulator.balanceEURC += parseFloat(ethers.formatEther(member.memberEURCBalance));
+            accumulator.debtETH += parseFloat(ethers.formatEther(member.memberDebt));
+            accumulator.debtEURC += parseFloat(ethers.formatEther(member.memberEURCDebt));
+            return accumulator;
+          }, {
+            balanceETH: 0,
+            balanceEURC: 0,
+            debtETH: 0,
+            debtEURC: 0,
+          });
+
+          setHouseSummary([
             {
-              title: "House Balance",
+              title: "Gesamtbestand",
+              subtitle: "Alle Member zusammen",
               currency: "ETH",
-              value: parseFloat(ethers.formatEther(balanceETH)),
+              value: totals.balanceETH,
               accent: "#7C3AED",
               accentLight: "#EDE9FE",
               icon: LuCoins,
               type: "balance",
             },
             {
-              title: "Offene Schulden",
+              title: "Gesamtschulden",
+              subtitle: "Alle Member zusammen",
               currency: "ETH",
-              value: parseFloat(ethers.formatEther(debtETH)),
+              value: totals.debtETH,
               accent: "#7C3AED",
               accentLight: "#EDE9FE",
               icon: LuCircleAlert,
               type: "debt",
             },
             {
-              title: "House Balance",
+              title: "Gesamtbestand",
+              subtitle: "Alle Member zusammen",
               currency: "EURC",
-              value: parseFloat(ethers.formatEther(balanceEURC)),
+              value: totals.balanceEURC,
               accent: "#2563EB",
               accentLight: "#DBEAFE",
               icon: LuBanknote,
               type: "balance",
             },
             {
-              title: "Offene Schulden",
+              title: "Gesamtschulden",
+              subtitle: "Alle Member zusammen",
               currency: "EURC",
-              value: parseFloat(ethers.formatEther(debtEURC)),
+              value: totals.debtEURC,
               accent: "#2563EB",
               accentLight: "#DBEAFE",
               icon: LuCircleAlert,
               type: "debt",
             },
-          ];
-          setHouseSummary(summary);
-        }
-      } catch(error) {
-        console.log("Could not get financial overview:", error);
-      }
+          ]);
 
-      try {
-        const members = await getAllHouseMembers();
-        if (members) {
           const formattedMembers = members.map(member => ({
             name: member.memberName,
             address: member.memberAddress,
             eth: parseFloat(ethers.formatEther(member.memberBalance)),
             eurc: parseFloat(ethers.formatEther(member.memberEURCBalance)),
+            debtETH: parseFloat(ethers.formatEther(member.memberDebt)),
+            debtEURC: parseFloat(ethers.formatEther(member.memberEURCDebt)),
           }));
           setMemberBalances(formattedMembers);
         }
@@ -162,13 +168,16 @@ function BalancePage() {
                       {item.currency}
                     </Badge>
                   </Flex>
+                  <Text fontSize="xs" color="#64748B" fontWeight="500">
+                    {item.subtitle}
+                  </Text>
                   <Text
                     fontSize="3xl"
                     fontWeight="800"
                     color="#0F172A"
                     fontVariantNumeric="tabular-nums"
                   >
-                    {formatCurrency(item.value)}
+                    {formatTokenAmount(item.value, item.currency)}
                   </Text>
                 </Stack>
 
@@ -224,7 +233,7 @@ function BalancePage() {
                   </Box>
                   <Flex gap={4}>
                     <Box flex={1}>
-                      <Text fontSize="xs" color="#64748B" fontWeight="500">ETH</Text>
+                      <Text fontSize="xs" color="#64748B" fontWeight="500">ETH Bestand</Text>
                       <Text 
                         fontWeight="700" 
                         fontSize="sm" 
@@ -234,13 +243,35 @@ function BalancePage() {
                       </Text>
                     </Box>
                     <Box flex={1}>
-                      <Text fontSize="xs" color="#64748B" fontWeight="500">EURC</Text>
+                      <Text fontSize="xs" color="#64748B" fontWeight="500">EURC Bestand</Text>
                       <Text 
                         fontWeight="700" 
                         fontSize="sm" 
                         color={member.eurc >= 0 ? "#16A34A" : "#DC2626"}
                       >
                         {member.eurc >= 0 ? "+" : ""}{member.eurc.toFixed(2)}
+                      </Text>
+                    </Box>
+                  </Flex>
+                  <Flex gap={4}>
+                    <Box flex={1}>
+                      <Text fontSize="xs" color="#64748B" fontWeight="500">ETH Schulden</Text>
+                      <Text 
+                        fontWeight="700" 
+                        fontSize="sm" 
+                        color={member.debtETH > 0 ? "#DC2626" : "#16A34A"}
+                      >
+                        {member.debtETH.toFixed(2)}
+                      </Text>
+                    </Box>
+                    <Box flex={1}>
+                      <Text fontSize="xs" color="#64748B" fontWeight="500">EURC Schulden</Text>
+                      <Text 
+                        fontWeight="700" 
+                        fontSize="sm" 
+                        color={member.debtEURC > 0 ? "#DC2626" : "#16A34A"}
+                      >
+                        {member.debtEURC.toFixed(2)}
                       </Text>
                     </Box>
                   </Flex>

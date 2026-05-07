@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { getContract, CONTRACT_ADDRESS } from "./ethereum";
+import { connectWallet, getContract, CONTRACT_ADDRESS } from "./ethereum";
 import ERC20Abi from "./ERC20Abi.json"; 
 
 const eurcAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // EURC Testnet Address
@@ -10,13 +10,7 @@ export async function getSigner() {
     if (!window.ethereum) {
         throw new Error("MetaMask not found");
     }
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
-
-    // Wallet verbinden (falls noch nicht passiert)
-    await provider.send("eth_requestAccounts", []);
-
-    return await provider.getSigner();
+    return await connectWallet();
 }
 
 async function getEurc() {
@@ -55,19 +49,26 @@ export async function sendETHtoContract(amount) {
 
     try {
         const signer = await getSigner();
+        const value = ethers.parseEther(amount.toString());
+        const txRequest = {
+            to: contractAddress,
+            value
+        };
 
         console.log("Signer: ", signer);
-
-        const tx = await signer.sendTransaction({
-            to: contractAddress,
-            value: ethers.parseEther(amount.toString())
+        console.log("ETH deposit tx:", {
+            ...txRequest,
+            value: value.toString()
         });
+
+        const tx = await signer.sendTransaction(txRequest);
 
         await tx.wait();
         return tx;
 
     } catch (error) {
         console.log("ETH could not send to contract!", error);
+        throw error;
     }
 }
 
@@ -83,12 +84,16 @@ export async function payEURCtoAddress(payer, amount){
 }
 
 export async function payETHtoAddress(payer, amount){
-    console.log("Pay EURC to Address ", payer , amount)
+    console.log("Pay ETH to Address ", payer , amount)
     const validAddress = ethers.getAddress(payer);
     try{
-        await contract.payment(validAddress, amount);
+        if (typeof contract.payETHtoAddress !== "function") {
+            throw new Error("payETHtoAddress() ist im aktuellen Contract-ABI nicht verfuegbar. Bitte Contract neu kompilieren und Frontend neu starten.");
+        }
+        await contract.payETHtoAddress(validAddress, amount);
     }
     catch(Error){
-        console.log("Could not send EURC to address!", Error);
+        console.log("Could not send ETH to address!", Error);
+        throw Error;
     }
 }
