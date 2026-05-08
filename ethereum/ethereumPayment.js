@@ -87,10 +87,10 @@ export async function payETHtoAddress(payer, amount){
     console.log("Pay ETH to Address ", payer , amount)
     const validAddress = ethers.getAddress(payer);
     try{
-        if (typeof contract.payETHtoAddress !== "function") {
-            throw new Error("payETHtoAddress() ist im aktuellen Contract-ABI nicht verfuegbar. Bitte Contract neu kompilieren und Frontend neu starten.");
+        if (typeof contract.payment !== "function") {
+            throw new Error("payment() ist im aktuellen Contract-ABI nicht verfuegbar. Bitte Contract neu kompilieren und Frontend neu starten.");
         }
-        await contract.payETHtoAddress(validAddress, amount);
+        await contract.payment(validAddress, amount);
     }
     catch(Error){
         console.log("Could not send ETH to address!", Error);
