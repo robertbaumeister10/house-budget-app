@@ -164,7 +164,7 @@ function WhitelistPage() {
           </Box>
         </Box>
 
-        {/* Add Section */}
+        {/* Add Section
         <Box
           width={{ base: "100%", lg: "70%" }}
           bg="white"
@@ -219,7 +219,7 @@ function WhitelistPage() {
               </Button>
             </Flex>
           </Box>
-        </Box>
+        </Box> */}
 
         <Box
           width={{ base: "100%", lg: "70%" }}
