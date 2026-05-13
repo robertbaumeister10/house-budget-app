@@ -14,7 +14,7 @@ import {
   LuCoins,
 } from "react-icons/lu";
 import { useEffect, useState } from "react";
-import { getTransactionHistory } from "../../ethereum/ethereumBalance";
+import { getTransactionHistory, getContractBalance } from "../../ethereum/ethereumBalance";
 import { getAllHouseMembers } from "../../ethereum/ethereumMembers";
 
 import { ethers } from "ethers";
@@ -34,26 +34,29 @@ function BalancePage() {
     const loadData = async () => {
       try {
         const members = await getAllHouseMembers();
+        const contractBalanceRaw = await getContractBalance();
         if (members) {
           const totals = members.reduce((accumulator, member) => {
-            accumulator.balanceETH += parseFloat(ethers.formatEther(member.memberBalance));
             accumulator.balanceEURC += parseFloat(ethers.formatEther(member.memberEURCBalance));
             accumulator.debtETH += parseFloat(ethers.formatEther(member.memberDebt));
             accumulator.debtEURC += parseFloat(ethers.formatEther(member.memberEURCDebt));
             return accumulator;
           }, {
-            balanceETH: 0,
             balanceEURC: 0,
             debtETH: 0,
             debtEURC: 0,
           });
 
+          const balanceETH = contractBalanceRaw !== undefined
+            ? parseFloat(ethers.formatEther(contractBalanceRaw))
+            : 0;
+
           setHouseSummary([
             {
               title: "Gesamtbestand",
-              subtitle: "Alle Member zusammen",
+              subtitle: "Contract Balance",
               currency: "ETH",
-              value: totals.balanceETH,
+              value: balanceETH,
               accent: "#7C3AED",
               accentLight: "#EDE9FE",
               icon: LuCoins,

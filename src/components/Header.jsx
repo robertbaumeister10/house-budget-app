@@ -18,7 +18,8 @@ function Header({ activePage, onNavigate }) {
         if (isMounted) {
           setIsContractConnected(true);
         }
-      } catch {
+      } catch (error) {
+        console.error("ping() fehlgeschlagen:", error);
         if (isMounted) {
           setIsContractConnected(false);
         }

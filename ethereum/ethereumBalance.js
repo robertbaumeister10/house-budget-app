@@ -4,6 +4,17 @@ import { Alchemy, Network } from "alchemy-sdk";
 const contract = getContract();
 const contractAddress = CONTRACT_ADDRESS;
 
+export async function getContractBalance(){
+    console.log("Get contract balance!");
+    try{
+        const result = await contract.getContractBalance();
+        return result;
+    }
+    catch(error){
+        console.log("Could not get contract balance! ", error);
+    }
+}
+
 export async function getFinancialOverview(){
     console.log("Get financial overview!");
     try{

@@ -5,7 +5,7 @@ const NETWORK_NAME = import.meta.env.VITE_NETWORK_NAME || "Hardhat Local";
 const RPC_URL = import.meta.env.VITE_RPC_URL || "http://127.0.0.1:8545";
 const CHAIN_ID = Number(import.meta.env.VITE_CHAIN_ID || "1337");
 const CHAIN_ID_HEX = `0x${CHAIN_ID.toString(16)}`;
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
 const NATIVE_CURRENCY_NAME = import.meta.env.VITE_NATIVE_CURRENCY_NAME || "ETH";
 const NATIVE_CURRENCY_SYMBOL = import.meta.env.VITE_NATIVE_CURRENCY_SYMBOL || "ETH";
 const NATIVE_CURRENCY_DECIMALS = Number(import.meta.env.VITE_NATIVE_CURRENCY_DECIMALS || "18");
@@ -31,7 +31,9 @@ export async function connectWallet(){
     }
     const provider = new ethers.BrowserProvider(window.ethereum);
     await switchNetwork();
-    const signer = await provider.getSigner();
+    // Aktiven Account explizit von MetaMask abfragen
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const signer = await provider.getSigner(accounts[0]);
     await logWalletState(provider, signer);
     return signer;
   }
@@ -86,8 +88,11 @@ async function logWalletState(provider, signer){
 }
 
 
-export function getContract() {
-  // assertValidPrivateKey(PRIVATE_KEY);
+export function getContract(signer) {
+  if (signer) {
+    return new ethers.Contract(CONTRACT_ADDRESS, HouseBudgetJSON.abi, signer);
+  }
+  // Fallback: read-only calls via private key wallet (z.B. ping, getAllHouseMembers)
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
   return new ethers.Contract(CONTRACT_ADDRESS, HouseBudgetJSON.abi, wallet);
