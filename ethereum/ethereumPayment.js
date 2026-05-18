@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { connectWallet, getContract, CONTRACT_ADDRESS } from "./ethereum";
 import ERC20Abi from "./ERC20Abi.json"; 
 
-const eurcAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // EURC Testnet Address
+const eurcAddress = import.meta.env.VITE_EURC_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // MockEURC (local) / EURC (Sepolia: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238)
 const contractAddress = CONTRACT_ADDRESS;
 
 export async function getSigner() {

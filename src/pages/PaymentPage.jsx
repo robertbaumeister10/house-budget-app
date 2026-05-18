@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import PageIntro from "../components/PageIntro";
 import { LuArrowRight, LuWallet } from "react-icons/lu";
+import { SiEthereum, SiEuropeanunion } from "react-icons/si";
 import { useState } from "react";
 import { ethers } from "ethers";
 import {
@@ -221,7 +222,11 @@ function PaymentPage() {
                         setIsApproved(false);
                       }}
                       transition="all 0.15s"
+                      display="flex"
+                      alignItems="center"
+                      gap="4px"
                     >
+                      <SiEthereum size={12} />
                       ETH
                     </Box>
                     <Box
@@ -236,7 +241,11 @@ function PaymentPage() {
                       color={currency === "EURC" ? "white" : "#475569"}
                       onClick={() => setCurrency("EURC")}
                       transition="all 0.15s"
+                      display="flex"
+                      alignItems="center"
+                      gap="4px"
                     >
+                      <SiEuropeanunion size={12} />
                       EURC
                     </Box>
                   </Flex>
@@ -329,7 +338,11 @@ function PaymentPage() {
                       setIsApproved(false);
                     }}
                     transition="all 0.15s"
+                    display="flex"
+                    alignItems="center"
+                    gap="4px"
                   >
+                    <SiEthereum size={12} />
                     ETH
                   </Box>
                   <Box
@@ -344,7 +357,11 @@ function PaymentPage() {
                     color={currency === "EURC" ? "white" : "#475569"}
                     onClick={() => setCurrency("EURC")}
                     transition="all 0.15s"
+                    display="flex"
+                    alignItems="center"
+                    gap="4px"
                   >
+                    <SiEuropeanunion size={12} />
                     EURC
                   </Box>
                 </Flex>

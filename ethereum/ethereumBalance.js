@@ -1,8 +1,11 @@
+import { ethers } from "ethers";
 import { getContract, CONTRACT_ADDRESS } from "./ethereum";
 import { Alchemy, Network } from "alchemy-sdk";
+import ERC20Abi from "./ERC20Abi.json";
 
 const contract = getContract();
 const contractAddress = CONTRACT_ADDRESS;
+const eurcAddress = import.meta.env.VITE_EURC_ADDRESS;
 
 export async function getContractBalance(){
     console.log("Get contract balance!");
@@ -12,6 +15,18 @@ export async function getContractBalance(){
     }
     catch(error){
         console.log("Could not get contract balance! ", error);
+    }
+}
+
+export async function getContractEURCBalance(){
+    console.log("Get contract EURC balance!");
+    try{
+        const provider = new ethers.JsonRpcProvider(import.meta.env.VITE_RPC_URL || "http://127.0.0.1:8545");
+        const eurc = new ethers.Contract(eurcAddress, ERC20Abi, provider);
+        return await eurc.balanceOf(contractAddress);
+    }
+    catch(error){
+        console.log("Could not get contract EURC balance! ", error);
     }
 }
 

@@ -5,7 +5,7 @@ const NETWORK_NAME = import.meta.env.VITE_NETWORK_NAME || "Hardhat Local";
 const RPC_URL = import.meta.env.VITE_RPC_URL || "http://127.0.0.1:8545";
 const CHAIN_ID = Number(import.meta.env.VITE_CHAIN_ID || "1337");
 const CHAIN_ID_HEX = `0x${CHAIN_ID.toString(16)}`;
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 const NATIVE_CURRENCY_NAME = import.meta.env.VITE_NATIVE_CURRENCY_NAME || "ETH";
 const NATIVE_CURRENCY_SYMBOL = import.meta.env.VITE_NATIVE_CURRENCY_SYMBOL || "ETH";
 const NATIVE_CURRENCY_DECIMALS = Number(import.meta.env.VITE_NATIVE_CURRENCY_DECIMALS || "18");
@@ -94,11 +94,21 @@ export function getContract(signer) {
   }
   // Fallback: read-only calls via private key wallet (z.B. ping, getAllHouseMembers)
   const provider = new ethers.JsonRpcProvider(RPC_URL);
-  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
-  return new ethers.Contract(CONTRACT_ADDRESS, HouseBudgetJSON.abi, wallet);
+  return new ethers.Contract(CONTRACT_ADDRESS, HouseBudgetJSON.abi, provider);
 }
 
 export async function ping() {
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    try {
+      const code = await provider.getCode(CONTRACT_ADDRESS);
+      if (!code || code === "0x") {
+        throw new Error(`No contract bytecode found at ${CONTRACT_ADDRESS} on ${RPC_URL}`);
+      }
+    } catch (err) {
+      console.error("Error checking contract code:", err.message || err);
+      throw err;
+    }
+
     const contract = getContract();
     return await contract.pingContract();
 }

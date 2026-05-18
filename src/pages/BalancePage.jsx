@@ -9,12 +9,11 @@ import {
 } from "@chakra-ui/react";
 import PageIntro from "../components/PageIntro";
 import {
-  LuBanknote,
   LuCircleAlert,
-  LuCoins,
 } from "react-icons/lu";
+import { SiEthereum, SiEuropeanunion } from "react-icons/si";
 import { useEffect, useState } from "react";
-import { getTransactionHistory, getContractBalance } from "../../ethereum/ethereumBalance";
+import { getTransactionHistory, getContractBalance, getContractEURCBalance } from "../../ethereum/ethereumBalance";
 import { getAllHouseMembers } from "../../ethereum/ethereumMembers";
 
 import { ethers } from "ethers";
@@ -35,20 +34,23 @@ function BalancePage() {
       try {
         const members = await getAllHouseMembers();
         const contractBalanceRaw = await getContractBalance();
+        const contractEURCBalanceRaw = await getContractEURCBalance();
         if (members) {
           const totals = members.reduce((accumulator, member) => {
-            accumulator.balanceEURC += parseFloat(ethers.formatEther(member.memberEURCBalance));
             accumulator.debtETH += parseFloat(ethers.formatEther(member.memberDebt));
             accumulator.debtEURC += parseFloat(ethers.formatEther(member.memberEURCDebt));
             return accumulator;
           }, {
-            balanceEURC: 0,
             debtETH: 0,
             debtEURC: 0,
           });
 
           const balanceETH = contractBalanceRaw !== undefined
             ? parseFloat(ethers.formatEther(contractBalanceRaw))
+            : 0;
+
+          const balanceEURC = contractEURCBalanceRaw !== undefined
+            ? parseFloat(ethers.formatEther(contractEURCBalanceRaw))
             : 0;
 
           setHouseSummary([
@@ -59,7 +61,7 @@ function BalancePage() {
               value: balanceETH,
               accent: "#7C3AED",
               accentLight: "#EDE9FE",
-              icon: LuCoins,
+              icon: SiEthereum,
               type: "balance",
             },
             {
@@ -69,17 +71,17 @@ function BalancePage() {
               value: totals.debtETH,
               accent: "#7C3AED",
               accentLight: "#EDE9FE",
-              icon: LuCircleAlert,
+              icon: SiEthereum,
               type: "debt",
             },
             {
               title: "Gesamtbestand",
-              subtitle: "Alle Member zusammen",
+              subtitle: "Contract Balance",
               currency: "EURC",
-              value: totals.balanceEURC,
+              value: balanceEURC,
               accent: "#2563EB",
               accentLight: "#DBEAFE",
-              icon: LuBanknote,
+              icon: SiEuropeanunion,
               type: "balance",
             },
             {
@@ -89,7 +91,7 @@ function BalancePage() {
               value: totals.debtEURC,
               accent: "#2563EB",
               accentLight: "#DBEAFE",
-              icon: LuCircleAlert,
+              icon: SiEuropeanunion,
               type: "debt",
             },
           ]);
