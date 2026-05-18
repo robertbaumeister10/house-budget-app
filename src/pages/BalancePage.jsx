@@ -56,7 +56,6 @@ function BalancePage() {
           setHouseSummary([
             {
               title: "Gesamtbestand",
-              subtitle: "Contract Balance",
               currency: "ETH",
               value: balanceETH,
               accent: "#7C3AED",
@@ -66,7 +65,6 @@ function BalancePage() {
             },
             {
               title: "Gesamtschulden",
-              subtitle: "Alle Member zusammen",
               currency: "ETH",
               value: totals.debtETH,
               accent: "#7C3AED",
@@ -76,7 +74,6 @@ function BalancePage() {
             },
             {
               title: "Gesamtbestand",
-              subtitle: "Contract Balance",
               currency: "EURC",
               value: balanceEURC,
               accent: "#2563EB",
@@ -86,7 +83,6 @@ function BalancePage() {
             },
             {
               title: "Gesamtschulden",
-              subtitle: "Alle Member zusammen",
               currency: "EURC",
               value: totals.debtEURC,
               accent: "#2563EB",
